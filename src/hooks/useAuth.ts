@@ -8,59 +8,62 @@ import {
   updateDisplayName,
   type AuthUser,
 } from "@/lib/auth";
-import { useCallback, useSyncExternalStore } from "react";
-
-let cached: AuthUser | null | undefined;
-const listeners = new Set<() => void>();
-
-function readCached(): AuthUser | null {
-  if (cached === undefined) cached = getSessionUser();
-  return cached;
-}
-
-function subscribe(cb: () => void) {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-}
-
-function bump() {
-  cached = getSessionUser();
-  listeners.forEach((l) => l());
-}
-
-function getSnapshot(): AuthUser | null {
-  return readCached();
-}
-
-function getServerSnapshot(): AuthUser | null {
-  return null;
-}
+import { createClient } from "@/lib/supabase/browser";
+import { useCallback, useEffect, useState } from "react";
 
 export function useAuth() {
-  const user = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [ready, setReady] = useState(false);
 
-  const register = useCallback(async (username: string, password: string) => {
-    const result = await registerUser(username, password);
-    if (result.ok) bump();
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+
+    void (async () => {
+      const sessionUser = await getSessionUser();
+      if (!cancelled) {
+        setUser(sessionUser);
+        setReady(true);
+      }
+    })();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      void getSessionUser().then((u) => {
+        if (!cancelled) setUser(u);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const register = useCallback(
+    async (username: string, email: string, password: string) => {
+      const result = await registerUser(username, email, password);
+      if (result.ok) setUser(result.user);
+      return result;
+    },
+    [],
+  );
+
+  const login = useCallback(async (email: string, password: string) => {
+    const result = await loginUser(email, password);
+    if (result.ok) setUser(result.user);
     return result;
   }, []);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const result = await loginUser(username, password);
-    if (result.ok) bump();
-    return result;
+  const logout = useCallback(async () => {
+    await logoutUser();
+    setUser(null);
   }, []);
 
-  const logout = useCallback(() => {
-    logoutUser();
-    bump();
-  }, []);
-
-  const rename = useCallback((displayName: string) => {
-    const next = updateDisplayName(displayName);
-    if (next) bump();
+  const rename = useCallback(async (displayName: string) => {
+    const next = await updateDisplayName(displayName);
+    if (next) setUser(next);
     return next;
   }, []);
 
-  return { user, ready: true, register, login, logout, rename };
+  return { user, ready, register, login, logout, rename };
 }

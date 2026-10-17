@@ -12,7 +12,6 @@ import {
   isPassingScore,
   isPerfectScore,
 } from "@/lib/scoring";
-import { canRedeem, getShopItem, makeCouponCode } from "@/lib/rewards";
 import { getStreakAfterPass } from "@/lib/streak";
 import { getDayIndex, getNextMaxUnlockedDay } from "@/lib/unlock";
 
@@ -90,6 +89,8 @@ export type ProgressAction =
       score: number;
       todayKey: string;
       nowIso: string;
+      /** When true (server wallet), museum updates but points stay server-owned. */
+      skipPointCredit?: boolean;
     }
   | { type: "markBadgesSeen"; badgeIds: BadgeId[] }
   | {
@@ -103,6 +104,14 @@ export type ProgressAction =
       itemId: string;
       username: string;
       nowIso: string;
+      code: string;
+      cost: number;
+    }
+  | {
+      type: "syncWallet";
+      pointsEarned: number;
+      pointsSpent: number;
+      redemptions?: Progress["redemptions"];
     }
   | { type: "adoptSnapshot"; snapshot: Progress; todayKey: string };
 
@@ -128,7 +137,9 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
       };
 
       if (!passing) {
-        points += calculateEffortPoints(action.score);
+        if (!action.skipPointCredit) {
+          points += calculateEffortPoints(action.score);
+        }
         next = { ...next, points };
         const newBadges = getNewBadges(
           next,
@@ -152,10 +163,12 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
       let collected = state.collected;
 
       if (isFirstCollect) {
-        points += calculatePointsForPass({
-          isFirstCollect: true,
-          newStreakCount: streak.count,
-        });
+        if (!action.skipPointCredit) {
+          points += calculatePointsForPass({
+            isFirstCollect: true,
+            newStreakCount: streak.count,
+          });
+        }
         collected = {
           ...collected,
           [action.discoveryId]: {
@@ -176,12 +189,14 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
         };
       }
 
-      const revisit = calculateRevisitBonus({
-        alreadyCollected: !isFirstCollect,
-        isPassing: true,
-        lastClaimDate: state.revisitClaimed[action.discoveryId],
-        todayKey: action.todayKey,
-      });
+      const revisit = action.skipPointCredit
+        ? 0
+        : calculateRevisitBonus({
+            alreadyCollected: !isFirstCollect,
+            isPassing: true,
+            lastClaimDate: state.revisitClaimed[action.discoveryId],
+            todayKey: action.todayKey,
+          });
       const isRevisitBonus = revisit > 0;
       if (isRevisitBonus) {
         points += revisit;
@@ -216,25 +231,26 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
       };
     case "dismissIntro":
       return { ...state, introDismissed: true };
-    case "redeemShopItem": {
-      const item = getShopItem(action.itemId);
-      if (!item) return state;
-      const spent = state.spentPoints ?? 0;
-      if (!canRedeem(item, state.points, spent)) return state;
-      const code = makeCouponCode(
-        item.codePrefix,
-        action.username,
-        (state.redemptions ?? []).length,
-      );
+    case "syncWallet": {
       return {
         ...state,
-        spentPoints: spent + item.cost,
+        points: action.pointsEarned,
+        spentPoints: action.pointsSpent,
+        redemptions: action.redemptions ?? state.redemptions ?? [],
+      };
+    }
+    case "redeemShopItem": {
+      // Mirror of a server redemption only — never invent codes client-side.
+      return {
+        ...state,
+        points: Math.max(state.points, action.cost),
+        spentPoints: (state.spentPoints ?? 0) + action.cost,
         redemptions: [
           ...(state.redemptions ?? []),
           {
-            itemId: item.id,
-            cost: item.cost,
-            code,
+            itemId: action.itemId,
+            cost: action.cost,
+            code: action.code,
             redeemedAt: action.nowIso,
           },
         ],

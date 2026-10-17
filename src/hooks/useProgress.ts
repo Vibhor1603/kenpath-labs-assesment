@@ -28,7 +28,11 @@ type UseProgressReturn = {
   /** Saved progress has been read. Until then the UI shows the fresh state. */
   hydrated: boolean;
   dispatch: (action: ProgressAction) => void;
-  finishTest: (discoveryId: DiscoveryId, score: number) => TestOutcome;
+  finishTest: (
+    discoveryId: DiscoveryId,
+    score: number,
+    opts?: { skipPointCredit?: boolean },
+  ) => TestOutcome;
   /**
    * Bind the current (guest) museum to an account: merge any saved account
    * progress, keep phone work, and mirror saves to that account key.
@@ -91,7 +95,11 @@ export function useProgress(): UseProgressReturn {
   }, [progress, hydrated, writeAccountMirror]);
 
   const finishTest = useCallback(
-    (discoveryId: DiscoveryId, score: number): TestOutcome => {
+    (
+      discoveryId: DiscoveryId,
+      score: number,
+      opts?: { skipPointCredit?: boolean },
+    ): TestOutcome => {
       const before = progressRef.current;
       const action: ProgressAction = {
         type: "finishTest",
@@ -99,6 +107,7 @@ export function useProgress(): UseProgressReturn {
         score,
         todayKey,
         nowIso: new Date().toISOString(),
+        skipPointCredit: opts?.skipPointCredit,
       };
       const after = progressReducer(before, action);
       progressRef.current = after;

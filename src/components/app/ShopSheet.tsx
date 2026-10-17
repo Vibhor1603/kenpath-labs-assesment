@@ -4,19 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { copy } from "@/content/copy";
 import type { Progress } from "@/content/types";
-import {
-  availableBalance,
-  canRedeem,
-  getShopItem,
-  SHOP_ITEMS,
-  type ShopItem,
-} from "@/lib/rewards";
+import { availableBalance, SHOP_ITEMS } from "@/lib/rewards";
+import type { ServerShopItem } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
 
 type ShopSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   progress: Progress;
+  catalog: ServerShopItem[];
   username: string | null;
   onRedeem: (itemId: string) => void;
   onNeedAuth: () => void;
@@ -26,12 +22,23 @@ export function ShopSheet({
   open,
   onOpenChange,
   progress,
+  catalog,
   username,
   onRedeem,
   onNeedAuth,
 }: ShopSheetProps) {
   const balance = availableBalance(progress.points, progress.spentPoints ?? 0);
   const redemptions = progress.redemptions ?? [];
+  const items =
+    catalog.length > 0
+      ? catalog
+      : SHOP_ITEMS.map((i) => ({
+          id: i.id,
+          brand: i.brand,
+          title: i.title,
+          detail: i.detail,
+          cost: i.cost,
+        }));
 
   return (
     <Sheet
@@ -56,11 +63,11 @@ export function ShopSheet({
         {copy.shop.catalogHeading}
       </p>
       <ul className="mt-2 flex flex-col gap-2.5">
-        {SHOP_ITEMS.map((item) => (
+        {items.map((item) => (
           <ShopRow
             key={item.id}
             item={item}
-            affordable={canRedeem(item, progress.points, progress.spentPoints ?? 0)}
+            affordable={balance >= item.cost}
             onRedeem={() => {
               if (!username) {
                 onNeedAuth();
@@ -79,7 +86,7 @@ export function ShopSheet({
           </p>
           <ul className="mt-2 mb-3 flex flex-col gap-2">
             {[...redemptions].reverse().map((r) => {
-              const item = getShopItem(r.itemId);
+              const item = items.find((i) => i.id === r.itemId);
               return (
                 <li
                   key={r.code}
@@ -111,7 +118,7 @@ function ShopRow({
   affordable,
   onRedeem,
 }: {
-  item: ShopItem;
+  item: ServerShopItem;
   affordable: boolean;
   onRedeem: () => void;
 }) {

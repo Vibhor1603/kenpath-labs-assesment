@@ -61,8 +61,9 @@ export const copy = {
     createTitle: "Create account",
     loginTitle: "Log in",
     localNote:
-      "Saved only on this phone. Passwords never leave the device. Not a cloud account.",
+      "Ken points and coupons live on the server. Sign in to earn and redeem. Passwords are handled by Supabase Auth.",
     username: "Username",
+    email: "Email",
     password: "Password",
     create: "Create account",
     login: "Log in",
@@ -71,6 +72,7 @@ export const copy = {
     haveAccount: "Already have an account? Log in",
     needAccount: "New here? Create an account",
     progressSaved: "Your museum progress is saved to this account.",
+    walletRequired: "Sign in to take the graded test and earn Ken points.",
   },
   share: {
     title: "Share achievement",
@@ -90,6 +92,9 @@ export const copy = {
     next: "Next",
     seeResult: "See result",
     close: "Leave the test",
+    loadingServer: "Preparing a secure quiz…",
+    serverGraded: "server graded",
+    submitting: "Checking answers…",
   },
   quiz: {
     correct: ["Yes. That is it.", "Right. You saw how it works."],
@@ -182,7 +187,8 @@ export const copy = {
   },
   shop: {
     title: "Reward shop",
-    subtitle: "Spend Ken points on demo brand coupons.",
+    subtitle:
+      "Spend server wallet points on demo coupons. Costs and codes are issued by the API, not the browser.",
     balanceLabel: "Available points",
     earnedLine: (earned: number, spent: number) =>
       `Earned ${earned} · spent ${spent}`,
@@ -193,6 +199,7 @@ export const copy = {
     needMore: "Need more",
     redeemedToast: (brand: string) => `${brand} coupon unlocked.`,
     notEnough: "Not enough points yet.",
+    redeemFailed: "Could not redeem. Try again.",
   },
   easterEggs: {
     fridgeDoor: "Shh. You are letting heat in.",

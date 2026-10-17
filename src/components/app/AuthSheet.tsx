@@ -10,10 +10,11 @@ type AuthSheetProps = {
   onOpenChange: (open: boolean) => void;
   onRegister: (
     username: string,
+    email: string,
     password: string,
   ) => Promise<{ ok: true } | { ok: false; error: string }>;
   onLogin: (
-    username: string,
+    email: string,
     password: string,
   ) => Promise<{ ok: true } | { ok: false; error: string }>;
 };
@@ -21,6 +22,7 @@ type AuthSheetProps = {
 export function AuthSheet({ open, onOpenChange, onRegister, onLogin }: AuthSheetProps) {
   const [mode, setMode] = useState<"login" | "register">("register");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,14 +32,15 @@ export function AuthSheet({ open, onOpenChange, onRegister, onLogin }: AuthSheet
     setError("");
     const result =
       mode === "register"
-        ? await onRegister(username, password)
-        : await onLogin(username, password);
+        ? await onRegister(username, email, password)
+        : await onLogin(email, password);
     setBusy(false);
     if (!result.ok) {
       setError(result.error);
       return;
     }
     setUsername("");
+    setEmail("");
     setPassword("");
     onOpenChange(false);
   };
@@ -56,16 +59,32 @@ export function AuthSheet({ open, onOpenChange, onRegister, onLogin }: AuthSheet
           void submit();
         }}
       >
+        {mode === "register" ? (
+          <label className="flex flex-col gap-1">
+            <span className="text-caption text-ink-soft font-semibold">
+              {copy.auth.username}
+            </span>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              className="bg-sunk text-ink ring-line min-h-11 rounded-[14px] px-3 text-[15px] outline-none ring-1 focus:ring-ink/30"
+              maxLength={24}
+              required
+            />
+          </label>
+        ) : null}
         <label className="flex flex-col gap-1">
           <span className="text-caption text-ink-soft font-semibold">
-            {copy.auth.username}
+            {copy.auth.email}
           </span>
           <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoComplete="username"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             className="bg-sunk text-ink ring-line min-h-11 rounded-[14px] px-3 text-[15px] outline-none ring-1 focus:ring-ink/30"
-            maxLength={24}
+            required
           />
         </label>
         <label className="flex flex-col gap-1">
@@ -80,6 +99,7 @@ export function AuthSheet({ open, onOpenChange, onRegister, onLogin }: AuthSheet
             minLength={6}
             maxLength={128}
             className="bg-sunk text-ink ring-line min-h-11 rounded-[14px] px-3 text-[15px] outline-none ring-1 focus:ring-ink/30"
+            required
           />
         </label>
         {error ? <p className="text-caption text-wrong font-semibold">{error}</p> : null}

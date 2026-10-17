@@ -43,7 +43,8 @@ export function wrongAnswers(id: DiscoveryId, attempt: number): string[] {
 
 export async function answerAll(page: Page, picks: string[]) {
   for (let i = 0; i < picks.length; i++) {
-    await page.getByRole("button", { name: picks[i], exact: true }).click();
+    // Option buttons are named like "B Squeezes the gas…" (letter + label).
+    await page.getByRole("button", { name: picks[i] }).click();
     const last = i === picks.length - 1;
     await page
       .getByRole("button", { name: last ? "See result" : "Next", exact: true })

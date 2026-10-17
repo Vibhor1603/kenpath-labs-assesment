@@ -22,8 +22,16 @@ import { useView, type ViewState } from "@/hooks/useView";
 import { getUnseenBadges } from "@/lib/badges";
 import { toDateKey } from "@/lib/date";
 import { loadLessonArt } from "@/lib/lessonArt";
-import { canRedeem, getShopItem } from "@/lib/rewards";
+import { availableBalance } from "@/lib/rewards";
 import { toast } from "@/lib/toast";
+import {
+  fetchWallet,
+  redeemItem,
+  startServerQuiz,
+  submitServerQuiz,
+  type QuizStartPayload,
+  type ServerShopItem,
+} from "@/lib/wallet";
 import {
   getDayIndex,
   getNextMaxUnlockedDay,
@@ -94,12 +102,6 @@ export default function Page() {
     if (meta) meta.setAttribute("content", dark ? "#121212" : "#F3F0EA");
   }, [progress.settings.darkMode]);
 
-  // Returning session: bind account mirror without a toast every reload.
-  useEffect(() => {
-    if (!hydrated || !user) return;
-    attachAccount(user.username, { silent: true });
-  }, [hydrated, user?.username, attachAccount, user]);
-
   const todayKey = toDateKey(new Date());
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
@@ -110,7 +112,45 @@ export default function Page() {
   const [testKey, setTestKey] = useState(0);
   const [justCollected, setJustCollected] = useState<DiscoveryId | null>(null);
   const [badgeQueue, setBadgeQueue] = useState<BadgeId[]>([]);
+  const [serverPaper, setServerPaper] = useState<QuizStartPayload | null>(null);
+  const [serverQuizLoading, setServerQuizLoading] = useState(false);
+  const [serverQuizError, setServerQuizError] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<ServerShopItem[]>([]);
   const shareDiscovery = shareId ? getDiscovery(shareId) : null;
+
+  // Returning session: bind account mirror without a toast every reload.
+  useEffect(() => {
+    if (!hydrated || !user) return;
+    attachAccount(user.username, { silent: true });
+  }, [hydrated, user?.username, attachAccount, user]);
+
+  // Server wallet is source of truth when signed in.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    void fetchWallet()
+      .then((snap) => {
+        if (cancelled) return;
+        setCatalog(snap.catalog);
+        dispatch({
+          type: "syncWallet",
+          pointsEarned: snap.wallet.pointsEarned,
+          pointsSpent: snap.wallet.pointsSpent,
+          redemptions: snap.redemptions.map((r) => ({
+            itemId: r.itemId,
+            cost: r.cost,
+            code: r.code,
+            redeemedAt: r.createdAt,
+          })),
+        });
+      })
+      .catch(() => {
+        /* offline / not ready */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, user, dispatch]);
 
   const animate = flags.mounted && !flags.calm && !flags.lite;
   const go = useCallback(
@@ -219,6 +259,22 @@ export default function Page() {
             onClose={goHome}
             onTest={() => {
               setTestKey((k) => k + 1);
+              setServerPaper(null);
+              setServerQuizError(null);
+              if (user) {
+                setServerQuizLoading(true);
+                void startServerQuiz(active.id)
+                  .then((paper) => {
+                    setServerPaper(paper);
+                    setServerQuizLoading(false);
+                  })
+                  .catch((e: unknown) => {
+                    setServerQuizError(
+                      e instanceof Error ? e.message : "Could not start quiz",
+                    );
+                    setServerQuizLoading(false);
+                  });
+              }
               go(() => push({ name: "test", discoveryId: active.id }));
             }}
           />
@@ -230,9 +286,47 @@ export default function Page() {
             discovery={active}
             attemptNumber={(progress.attempts[active.id] ?? 0) + 1}
             haptics={progress.settings.haptics}
-            onFinish={(score, results) => {
+            requireAuth={Boolean(user)}
+            serverPaper={user ? serverPaper : null}
+            serverLoading={Boolean(user) && serverQuizLoading}
+            serverError={serverQuizError}
+            onNeedAuth={() => setAuthOpen(true)}
+            onFinishLocal={(score, results) => {
               const outcome = finishTest(active.id, score);
               setAttempt({ discoveryId: active.id, results, outcome });
+            }}
+            onFinishServer={async (selectedIndices) => {
+              if (!serverPaper) throw new Error("Missing quiz session");
+              const graded = await submitServerQuiz(
+                serverPaper.sessionId,
+                selectedIndices,
+              );
+              // Museum UX only — wallet already credited by the server.
+              const outcome = finishTest(active.id, graded.score, {
+                skipPointCredit: true,
+              });
+              dispatch({
+                type: "syncWallet",
+                pointsEarned: graded.wallet.pointsEarned,
+                pointsSpent: graded.wallet.pointsSpent,
+              });
+              const results = Array.from({ length: 5 }, (_, i) => i < graded.score);
+              const nextAttempt = {
+                discoveryId: active.id,
+                results,
+                outcome: {
+                  ...outcome,
+                  pointsEarned: graded.pointsAwarded,
+                },
+              };
+              setAttempt(nextAttempt);
+              go(() =>
+                replace({
+                  name: nextAttempt.outcome.isPassing ? "reward" : "result",
+                  discoveryId: active.id,
+                }),
+              );
+              return { score: graded.score, results };
             }}
             onSeeResult={() => {
               if (!attempt) return;
@@ -298,6 +392,7 @@ export default function Page() {
         open={shopOpen}
         onOpenChange={setShopOpen}
         progress={progress}
+        catalog={catalog}
         username={user?.username ?? null}
         onNeedAuth={() => {
           setShopOpen(false);
@@ -309,21 +404,34 @@ export default function Page() {
             setAuthOpen(true);
             return;
           }
-          const item = getShopItem(itemId);
-          if (
-            !item ||
-            !canRedeem(item, progress.points, progress.spentPoints ?? 0)
-          ) {
+          const item = catalog.find((c) => c.id === itemId);
+          const bal = availableBalance(
+            progress.points,
+            progress.spentPoints ?? 0,
+          );
+          if (!item || bal < item.cost) {
             toast(copy.shop.notEnough);
             return;
           }
-          dispatch({
-            type: "redeemShopItem",
-            itemId,
-            username: user.username,
-            nowIso: new Date().toISOString(),
-          });
-          toast(copy.shop.redeemedToast(item.brand));
+          void redeemItem(itemId)
+            .then((res) => {
+              dispatch({
+                type: "syncWallet",
+                pointsEarned: res.wallet.pointsEarned,
+                pointsSpent: res.wallet.pointsSpent,
+                redemptions: [
+                  {
+                    itemId: res.redemption.itemId,
+                    cost: res.redemption.cost,
+                    code: res.redemption.code,
+                    redeemedAt: res.redemption.createdAt,
+                  },
+                  ...(progress.redemptions ?? []),
+                ],
+              });
+              toast(copy.shop.redeemedToast(item.brand));
+            })
+            .catch(() => toast(copy.shop.redeemFailed));
         }}
       />
       <MenuSheet
@@ -335,21 +443,24 @@ export default function Page() {
         onLoginPress={() => setAuthOpen(true)}
         onLogout={() => {
           detachAccount();
-          logout();
+          setCatalog([]);
+          void logout();
         }}
-        onRename={rename}
+        onRename={(name) => {
+          void rename(name);
+        }}
       />
       <AuthSheet
         open={authOpen}
         onOpenChange={setAuthOpen}
-        onRegister={async (username, password) => {
-          const result = await register(username, password);
+        onRegister={async (username, email, password) => {
+          const result = await register(username, email, password);
           if (result.ok) attachAccount(username);
           return result;
         }}
-        onLogin={async (username, password) => {
-          const result = await login(username, password);
-          if (result.ok) attachAccount(username);
+        onLogin={async (email, password) => {
+          const result = await login(email, password);
+          if (result.ok) attachAccount(result.user.username);
           return result;
         }}
       />

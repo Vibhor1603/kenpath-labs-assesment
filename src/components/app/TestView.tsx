@@ -7,18 +7,30 @@ import { copy } from "@/content/copy";
 import type { Discovery } from "@/content/types";
 import { vibrateCorrect } from "@/lib/haptics";
 import { buildQuizAttempt } from "@/lib/shuffle";
+import type { QuizStartPayload } from "@/lib/wallet";
 import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
 import { useMemo, useState } from "react";
+
+type LocalFinish = (score: number, results: boolean[]) => void;
+type ServerFinish = (
+  selectedIndices: number[],
+) => Promise<{ score: number; results: boolean[] }>;
 
 type TestViewProps = {
   discovery: Discovery;
   attemptNumber: number;
   haptics: boolean;
-  /** Called the moment question 5 is answered: that is when an attempt counts. */
-  onFinish: (score: number, results: boolean[]) => void;
+  /** When set, questions come from the server (no answer key). */
+  serverPaper: QuizStartPayload | null;
+  serverLoading?: boolean;
+  serverError?: string | null;
+  onFinishLocal: LocalFinish;
+  onFinishServer: ServerFinish;
   onSeeResult: () => void;
   onClose: () => void;
+  onNeedAuth?: () => void;
+  requireAuth: boolean;
 };
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -27,43 +39,117 @@ export default function TestView({
   discovery,
   attemptNumber,
   haptics,
-  onFinish,
+  serverPaper,
+  serverLoading,
+  serverError,
+  onFinishLocal,
+  onFinishServer,
   onSeeResult,
   onClose,
+  onNeedAuth,
+  requireAuth,
 }: TestViewProps) {
-  // Fixed for the life of this attempt; the stored count changes when question 5 is answered.
   const [attempt] = useState(attemptNumber);
-  const questions = useMemo(
+  const localQuestions = useMemo(
     () => buildQuizAttempt(discovery, attempt),
     [discovery, attempt],
   );
+
+  const serverMode = Boolean(serverPaper);
+  const questions = serverMode
+    ? (serverPaper?.questions ?? []).map((q) => ({
+        id: q.id,
+        q: q.q,
+        options: q.options,
+        answer: -1,
+        why: "",
+      }))
+    : localQuestions;
+
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [results, setResults] = useState<boolean[]>([]);
+  const [selections, setSelections] = useState<number[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  if (requireAuth && !serverPaper && !serverLoading) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6">
+        <p className="text-center text-[16px] font-semibold">
+          {serverError ?? copy.auth.walletRequired}
+        </p>
+        <Button
+          onClick={() => {
+            onNeedAuth?.();
+          }}
+        >
+          {copy.auth.login}
+        </Button>
+        <Button variant="secondary" onClick={onClose}>
+          {copy.test.close}
+        </Button>
+      </div>
+    );
+  }
+
+  if (serverLoading || questions.length === 0) {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center px-6">
+        <p className="text-ink-soft text-[15px] font-semibold">
+          {serverError ?? copy.test.loadingServer}
+        </p>
+      </div>
+    );
+  }
+
   const q = questions[index];
   const total = questions.length;
   const isLast = index === total - 1;
   const answered = picked !== null;
-  const correct = answered && picked === q.answer;
+  const correct = !serverMode && answered && picked === q.answer;
 
   const pick = (i: number) => {
-    if (answered) return;
+    if (answered || submitting) return;
+    if (serverMode) {
+      setPicked(i);
+      setSelections((prev) => [...prev, i]);
+      setResults((prev) => [...prev, true]); // placeholder until server grades
+      return;
+    }
     const ok = i === q.answer;
     const nextResults = [...results, ok];
     setPicked(i);
     setResults(nextResults);
     if (ok) vibrateCorrect(haptics);
-    if (isLast) onFinish(nextResults.filter(Boolean).length, nextResults);
+    if (isLast) onFinishLocal(nextResults.filter(Boolean).length, nextResults);
   };
 
-  const next = () => {
-    if (!answered) return;
-    if (isLast) {
-      onSeeResult();
+  const next = async () => {
+    if (!answered || submitting) return;
+    if (!isLast) {
+      setIndex(index + 1);
+      setPicked(null);
       return;
     }
-    setIndex(index + 1);
-    setPicked(null);
+
+    if (serverMode) {
+      setSubmitting(true);
+      setSubmitError(null);
+      try {
+        const graded = await onFinishServer(selections);
+        setResults(graded.results);
+        if (graded.score === total) vibrateCorrect(haptics);
+        // Parent navigates after setting attempt (avoids stale React state).
+      } catch (e) {
+        setSubmitError(e instanceof Error ? e.message : "Submit failed");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    onSeeResult();
   };
 
   return (
@@ -80,116 +166,82 @@ export default function TestView({
         <div key={q.id} className="anim-view-in">
           <p className="eyebrow text-ink-soft">
             {copy.test.questionOf(index + 1, total)}
+            {serverMode ? ` · ${copy.test.serverGraded}` : ""}
           </p>
           <h2 className="mt-2 min-h-[56px] text-[22px] leading-[28px]">{q.q}</h2>
 
           <div className="mt-5 flex flex-col gap-3" role="group" aria-label={q.q}>
             {q.options.map((option, i) => {
               const isPicked = picked === i;
-              const isAnswer = i === q.answer;
+              const isAnswer = !serverMode && i === q.answer;
               const state = !answered
                 ? "idle"
-                : isPicked && isAnswer
-                  ? "correct"
-                  : isPicked
-                    ? "wrong"
-                    : isAnswer
-                      ? "reveal"
-                      : "muted";
+                : serverMode
+                  ? isPicked
+                    ? "correct"
+                    : "muted"
+                  : isPicked && isAnswer
+                    ? "correct"
+                    : isPicked
+                      ? "wrong"
+                      : isAnswer
+                        ? "reveal"
+                        : "muted";
               return (
                 <button
-                  key={option}
+                  key={`${q.id}-${i}`}
                   type="button"
+                  disabled={answered}
                   onClick={() => pick(i)}
-                  aria-disabled={answered || undefined}
-                  aria-pressed={isPicked}
                   className={cn(
-                    "pressable flex min-h-16 w-full items-center gap-3.5 rounded-[18px] px-4 py-3 text-left text-[17px] leading-[23px] ring-inset",
-                    "active:scale-[0.98]",
-                    state === "idle" &&
-                      "bg-surface ring-line hover:ring-line-strong ring-1",
-                    state === "correct" && "bg-correct-tint ring-correct ring-2",
-                    state === "wrong" && "anim-shake bg-wrong-tint ring-wrong ring-2",
-                    state === "reveal" && "bg-surface ring-correct ring-2",
-                    state === "muted" && "bg-surface ring-line opacity-50 ring-1",
+                    "ring-line flex min-h-12 items-start gap-3 rounded-[16px] px-3.5 py-3 text-left ring-1 transition-[transform,background-color] duration-150",
+                    state === "idle" && "bg-surface active:scale-[0.99]",
+                    state === "correct" && "bg-ok-tint ring-ok/40",
+                    state === "wrong" && "bg-wrong-tint ring-wrong/40",
+                    state === "reveal" && "bg-ok-tint/50 ring-ok/25",
+                    state === "muted" && "bg-surface opacity-45",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold transition-colors duration-150",
-                      state === "idle" || state === "muted"
-                        ? "bg-sunk text-ink-soft"
-                        : "",
-                      state === "correct" || state === "reveal"
-                        ? "bg-correct text-surface"
-                        : "",
-                      state === "wrong" ? "bg-wrong text-surface" : "",
-                    )}
-                    aria-hidden="true"
-                  >
-                    {state === "correct" || state === "reveal" ? (
-                      <Check className="anim-pop-in size-4" strokeWidth={3} />
-                    ) : state === "wrong" ? (
-                      <X className="anim-pop-in size-4" strokeWidth={3} />
-                    ) : (
-                      LETTERS[i]
-                    )}
+                  <span className="tabular text-caption text-ink-soft mt-0.5 w-5 font-bold">
+                    {LETTERS[i]}
                   </span>
-                  <span className="min-w-0 flex-1 font-semibold">{option}</span>
-                  {state === "reveal" ? (
-                    <span className="sr-only">Right answer</span>
+                  <span className="flex-1 text-[15px] leading-[20px] font-medium">
+                    {option}
+                  </span>
+                  {!serverMode && state === "correct" ? (
+                    <Check className="text-ok mt-0.5 size-4 shrink-0" aria-hidden />
                   ) : null}
-                  {state === "wrong" ? (
-                    <span className="sr-only">Your answer, not right</span>
+                  {!serverMode && state === "wrong" ? (
+                    <X className="text-wrong mt-0.5 size-4 shrink-0" aria-hidden />
                   ) : null}
                 </button>
               );
             })}
           </div>
 
-          <div className="mt-4 min-h-[88px]" aria-live="polite">
-            {answered ? (
-              <div
-                className={cn(
-                  "anim-rise-in flex gap-3 rounded-[18px] p-4",
-                  correct ? "bg-correct-tint" : "bg-wrong-tint",
-                )}
-              >
-                <span
-                  className={cn(
-                    "text-surface mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full",
-                    correct ? "bg-correct" : "bg-wrong",
-                  )}
-                  aria-hidden="true"
-                >
-                  {correct ? (
-                    <Check className="size-3.5" strokeWidth={3} />
-                  ) : (
-                    <X className="size-3.5" strokeWidth={3} />
-                  )}
-                </span>
-                <div className="min-w-0">
-                  <p
-                    className={cn(
-                      "text-[17px] leading-[23px] font-semibold",
-                      correct ? "text-correct" : "text-wrong",
-                    )}
-                  >
-                    {correct
-                      ? copy.quiz.correct[index % copy.quiz.correct.length]
-                      : copy.quiz.wrong}
-                  </p>
-                  <p className="text-small text-ink mt-0.5">{q.why}</p>
-                </div>
-              </div>
-            ) : null}
-          </div>
+          {answered && !serverMode ? (
+            <p className="text-small text-ink-soft mt-4">
+              {correct ? copy.quiz.correct[0] : copy.quiz.wrong}
+              {!correct && q.why ? ` ${q.why}` : ""}
+            </p>
+          ) : null}
+          {submitError ? (
+            <p className="text-caption text-wrong mt-3 font-semibold">{submitError}</p>
+          ) : null}
         </div>
       </main>
 
       <BottomBar>
-        <Button className="flex-1" onClick={next} disabled={!answered}>
-          {isLast ? copy.test.seeResult : copy.test.next}
+        <Button
+          className="w-full"
+          disabled={!answered || submitting}
+          onClick={() => void next()}
+        >
+          {submitting
+            ? copy.test.submitting
+            : isLast
+              ? copy.test.seeResult
+              : copy.test.next}
         </Button>
       </BottomBar>
     </div>

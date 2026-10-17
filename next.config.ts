@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
+  // Server wallet APIs require Node hosting (not static export).
   images: { unoptimized: true },
   reactStrictMode: true,
   turbopack: {

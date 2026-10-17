@@ -16,7 +16,7 @@ export default defineConfig({
     command: "NEXT_PUBLIC_SYNC=off npm run build && npm run preview",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: true,
-    timeout: 180_000,
+    timeout: 240_000,
   },
   projects: [
     {

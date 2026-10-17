@@ -1,26 +1,150 @@
+/* ✦ Kenpath Museum — warm pastel, Fraunces + Inter, no dark mode */
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @theme inline {
+  /* ── Colour bridge: Tailwind utilities → CSS custom props ── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* ── Font variables ── */
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-fraunces);
+
+  /* ── Radius scale ── */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+  Palette (hex source of truth, mapped to OKLCH below):
+  Paper      #FBF5EC   Sand       #F1E4D1   Peach    #F6C9A8
+  Butter     #F7E3A1   Sage       #C9DDB8   Sky      #CFE4EC
+  Blush      #F3C6C6   Lavender   #D9D0EE
+  Soft ink   #5E554D   Deep ink   #2B2420
+  Kiln       #A94A1C   Ember      #E2703A
+  Deep teal  #1F6672   Teal       #2F7F8C
+  Deep berry #A3384B   Berry      #C2475B
+  Deep leaf  #2F6A3B   Leaf       #3E7D4A
+*/
+
+:root {
+  /* ── Shadcn tokens mapped to the museum palette ── */
+  --background:         oklch(0.971 0.014 85.87);   /* Paper    #FBF5EC */
+  --foreground:         oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
+  --card:               oklch(0.919 0.028 79.18);   /* Sand     #F1E4D1 */
+  --card-foreground:    oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
+  --popover:            oklch(0.971 0.014 85.87);   /* Paper    #FBF5EC */
+  --popover-foreground: oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
+  --primary:            oklch(0.480 0.126 42.63);   /* Kiln     #A94A1C */
+  --primary-foreground: oklch(0.971 0.014 85.87);   /* Paper    #FBF5EC */
+  --secondary:          oklch(0.919 0.028 79.18);   /* Sand     #F1E4D1 */
+  --secondary-foreground: oklch(0.196 0.017 48.56); /* Deep ink #2B2420 */
+  --muted:              oklch(0.919 0.028 79.18);   /* Sand     #F1E4D1 */
+  --muted-foreground:   oklch(0.393 0.020 54.27);   /* Soft ink #5E554D */
+  --accent:             oklch(0.839 0.066 58.21);   /* Peach    #F6C9A8 */
+  --accent-foreground:  oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
+  --destructive:        oklch(0.442 0.116 13.02);   /* Deep berry #A3384B */
+  --border:             oklch(0.880 0.022 78.00);   /* between Paper and Sand */
+  --input:              oklch(0.880 0.022 78.00);   /* same as border */
+  --ring:               oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
+  --radius:             16px;
+}
+
+@layer base {
+  /* Remove grey tap flash on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    @apply border-border outline-ring/50;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    /* Prevent horizontal scroll at the root */
+    overflow-x: clip;
+    @apply font-sans;
+  }
+
+  body {
+    /* Required by shadcn Drawer for iOS sheet positioning */
+    position: relative;
+    @apply bg-background text-foreground;
+  }
+
+  /* Overscroll: prevent pull-to-refresh on lesson/test/result/reward views */
+  html[data-view="lesson"],
+  html[data-view="test"],
+  html[data-view="result"],
+  html[data-view="reward"] {
+    overscroll-behavior-y: none;
+  }
+
+  /* Primary actions: no double-tap zoom delay, native feel */
+  button,
+  [role="button"],
+  a,
+  label {
+    touch-action: manipulation;
+  }
+
+  /* Shelf / horizontal scroller: contain overscroll */
+  [data-shelf-scroll] {
+    overscroll-behavior-x: contain;
+  }
+
+  /* Numbers that change should never shift layout */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Focus ring: 2 px Deep ink with 2 px Paper offset, no generic browser ring */
+  :focus-visible {
+    outline: 2px solid oklch(0.196 0.017 48.56); /* Deep ink */
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px oklch(0.971 0.014 85.87); /* Paper halo */
+  }
+
+  /* Grain overlay stub: paper texture at low opacity */
+  .grain-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: multiply;
+    background-image: url("/grain.png");
+    background-repeat: repeat;
+    background-size: 240px 240px;
+    z-index: 9999;
+  }
+
+  /* Display font helper */
+  .font-display {
+    font-family: var(--font-fraunces), serif;
+    font-variation-settings: "SOFT" 50;
+  }
+
+  /* Heading defaults to display font */
+  h1, h2 {
+    font-family: var(--font-fraunces), serif;
+    font-variation-settings: "SOFT" 50;
+  }
 }

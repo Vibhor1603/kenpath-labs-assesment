@@ -58,7 +58,7 @@ http://127.0.0.1:3000/?demo=1&view=lesson&d=leaf&step=1
 
 ### Environment
 
-No API keys are required for the core app. Progress lives in `localStorage` under `kenpath-museum-v1`.
+No API keys are required for the core app. Progress lives in `localStorage` under `kenpath-museum-v2`.
 
 Optional (not required to run):
 

@@ -53,7 +53,7 @@ export async function answerAll(page: Page, picks: string[]) {
 
 export async function readProgress(page: Page) {
   return page.evaluate(() => {
-    const raw = localStorage.getItem("kenpath-museum-v1");
+    const raw = localStorage.getItem("kenpath-museum-v2");
     return raw ? JSON.parse(raw) : null;
   });
 }

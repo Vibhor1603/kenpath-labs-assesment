@@ -16,7 +16,7 @@ test("3 of 5 fails; 4 of 5 collects", async ({ page }) => {
     const d = String(today.getDate()).padStart(2, "0");
     const key = `${y}-${m}-${d}`;
     localStorage.setItem(
-      "kenpath-museum-v1",
+      "kenpath-museum-v2",
       JSON.stringify({
         version: 1,
         firstVisitDate: key,

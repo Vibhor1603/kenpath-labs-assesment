@@ -142,7 +142,8 @@ export const swipe = {
   elastic: 0.18,
 } as const;
 
-export const STORAGE_KEY = "kenpath-museum-v1";
-export const SYNC_STORAGE_KEY = "kenpath-museum-v1-sync";
+/** v2: assessment showcase seed (fridge A-2, leaf A-1, heart today). */
+export const STORAGE_KEY = "kenpath-museum-v2";
+export const SYNC_STORAGE_KEY = "kenpath-museum-v2-sync";
 export const DEMO_STORAGE_KEY = "kenpath-demo";
 export const AUTH_STORAGE_KEY = "kenpath-auth";

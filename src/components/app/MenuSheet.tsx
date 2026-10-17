@@ -13,10 +13,7 @@ type MenuSheetProps = {
   onOpenChange: (open: boolean) => void;
   progress: Progress;
   user: AuthUser | null;
-  onSetting: (
-    key: "haptics" | "calmMotion" | "darkMode" | "hinglish",
-    value: boolean,
-  ) => void;
+  onSetting: (key: "darkMode" | "hinglish", value: boolean) => void;
   onLoginPress: () => void;
   onLogout: () => void;
   onRename: (name: string) => void;
@@ -137,20 +134,6 @@ export function MenuSheet({
             hint={copy.home.hinglishHint}
             checked={progress.settings.hinglish}
             onChange={(v) => onSetting("hinglish", v)}
-          />
-          <Pref
-            id="menu-haptics"
-            label={copy.home.hapticsLabel}
-            hint={copy.home.hapticsHint}
-            checked={progress.settings.haptics}
-            onChange={(v) => onSetting("haptics", v)}
-          />
-          <Pref
-            id="menu-calm"
-            label={copy.home.calmLabel}
-            hint={copy.home.calmHint}
-            checked={progress.settings.calmMotion}
-            onChange={(v) => onSetting("calmMotion", v)}
           />
         </div>
       </section>

@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/.lighthouseci/
 
 # next.js
 /.next/
@@ -39,3 +43,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local-only (never commit)
+_vibhor/
+docs/
+CURSOR_BUILD_PROMPT.md
+.cursor/
+.hallmark/
+supabase/.temp/
+supabase/.branches/
+skills-lock.json

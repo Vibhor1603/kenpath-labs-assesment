@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 const bar =
-  "relative z-20 flex h-[calc(52px+env(safe-area-inset-top))] shrink-0 items-center gap-2 px-[max(12px,env(safe-area-inset-left))] pt-[env(safe-area-inset-top)]";
+  "relative z-20 flex min-h-[calc(56px+env(safe-area-inset-top))] shrink-0 items-center gap-2.5 px-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))] pt-[calc(10px+env(safe-area-inset-top))] pb-2.5";
 
 type HomeTopBarProps = {
   right: ReactNode;
@@ -13,21 +13,18 @@ type HomeTopBarProps = {
 
 export function HomeTopBar({ right, onMenu }: HomeTopBarProps) {
   return (
-    <header
-      className={cn(bar, "pl-[max(12px,env(safe-area-inset-left))]")}
-      style={{ viewTransitionName: "topbar" }}
-    >
+    <header className={bar} style={{ viewTransitionName: "topbar" }}>
       {onMenu ? (
         <button
           type="button"
           onClick={onMenu}
           aria-label={copy.menu.openMenu}
-          className="pressable text-ink hover:bg-sunk/70 inline-flex size-11 shrink-0 items-center justify-center rounded-full"
+          className="pressable text-ink hover:bg-sunk/70 -ml-1 inline-flex size-11 shrink-0 items-center justify-center rounded-full"
         >
           <Menu className="size-5" aria-hidden="true" />
         </button>
       ) : null}
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
         <span className="font-display text-ink text-[18px] leading-none font-semibold tracking-[-0.02em] whitespace-nowrap">
           {copy.app.wordmark}
         </span>
@@ -35,7 +32,7 @@ export function HomeTopBar({ right, onMenu }: HomeTopBarProps) {
           {copy.app.tagline}
         </span>
       </div>
-      <div className="flex items-center gap-1.5">{right}</div>
+      <div className="flex items-center gap-2">{right}</div>
     </header>
   );
 }

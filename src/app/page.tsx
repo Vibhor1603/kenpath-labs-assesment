@@ -304,6 +304,11 @@ export default function Page() {
           setAuthOpen(true);
         }}
         onRedeem={(itemId) => {
+          if (!user) {
+            setShopOpen(false);
+            setAuthOpen(true);
+            return;
+          }
           const item = getShopItem(itemId);
           if (
             !item ||
@@ -315,7 +320,7 @@ export default function Page() {
           dispatch({
             type: "redeemShopItem",
             itemId,
-            username: user?.username ?? "guest",
+            username: user.username,
             nowIso: new Date().toISOString(),
           });
           toast(copy.shop.redeemedToast(item.brand));

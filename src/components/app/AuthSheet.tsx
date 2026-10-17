@@ -77,6 +77,8 @@ export function AuthSheet({ open, onOpenChange, onRegister, onLogin }: AuthSheet
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete={mode === "register" ? "new-password" : "current-password"}
+            minLength={6}
+            maxLength={128}
             className="bg-sunk text-ink ring-line min-h-11 rounded-[14px] px-3 text-[15px] outline-none ring-1 focus:ring-ink/30"
           />
         </label>

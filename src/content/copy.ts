@@ -60,7 +60,8 @@ export const copy = {
   auth: {
     createTitle: "Create account",
     loginTitle: "Log in",
-    localNote: "Saved only on this phone. Not a cloud account.",
+    localNote:
+      "Saved only on this phone. Passwords never leave the device. Not a cloud account.",
     username: "Username",
     password: "Password",
     create: "Create account",

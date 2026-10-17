@@ -51,6 +51,19 @@ type TileState =
   | { kind: "ready" }
   | { kind: "locked"; days: number };
 
+/** Display-only upcoming exhibits. No unlock logic or lessons yet. */
+const UPCOMING_TEASERS: {
+  id: string;
+  name: string;
+  catalogNo: string;
+  days: number;
+}[] = [
+  { id: "eye", name: "Eye", catalogNo: "No. 004", days: 3 },
+  { id: "battery", name: "Battery", catalogNo: "No. 005", days: 4 },
+  { id: "seed", name: "Seed", catalogNo: "No. 006", days: 5 },
+  { id: "lung", name: "Lung", catalogNo: "No. 007", days: 6 },
+];
+
 export function HomeView({
   progress,
   todayKey,
@@ -131,6 +144,11 @@ export function HomeView({
                   arriving={justCollected === d.id}
                   onOpen={() => onStart(d.id)}
                 />
+              </li>
+            ))}
+            {UPCOMING_TEASERS.map((teaser) => (
+              <li key={teaser.id} className="border-line border-t">
+                <LockedTeaserRow teaser={teaser} />
               </li>
             ))}
           </ul>
@@ -411,6 +429,44 @@ function CollectionRow({
           <ChevronRight className="size-4" aria-hidden="true" />
         </span>
       ) : null}
+    </button>
+  );
+}
+
+function LockedTeaserRow({
+  teaser,
+}: {
+  teaser: (typeof UPCOMING_TEASERS)[number];
+}) {
+  const lockedLine =
+    teaser.days === 1
+      ? copy.locked.opensTomorrow.replace(/\.$/, "")
+      : copy.locked.opensInDays(teaser.days);
+  return (
+    <button
+      type="button"
+      onClick={() => toast(`${teaser.name}. ${lockedLine}.`)}
+      aria-disabled="true"
+      className="pressable active:bg-sunk/50 relative flex min-h-[80px] w-full items-center gap-3.5 px-3.5 py-3 text-left"
+    >
+      <span
+        className="bg-sunk text-line-strong relative flex size-[56px] shrink-0 items-center justify-center overflow-hidden rounded-[16px]"
+        aria-hidden="true"
+      >
+        <Lock className="size-5 opacity-50" strokeWidth={2} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="text-ink-soft block text-[17px] leading-[22px] font-semibold">
+          {teaser.name}
+        </span>
+        <span className="text-caption text-ink-soft mt-0.5 flex items-center gap-1 font-semibold">
+          <Lock className="size-3.5" aria-hidden="true" />
+          {lockedLine}
+        </span>
+      </span>
+      <span className="tabular text-caption text-ink-soft sr-only">
+        {teaser.catalogNo}
+      </span>
     </button>
   );
 }

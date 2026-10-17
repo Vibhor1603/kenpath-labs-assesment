@@ -211,28 +211,29 @@
 }
 
 html[data-theme="dark"] {
-  --canvas: oklch(18% 0.01 260);
-  --surface: oklch(22% 0.012 260);
-  --sunk: oklch(26% 0.012 260);
-  --line: oklch(32% 0.014 260);
-  --line-strong: oklch(40% 0.016 260);
-  --backdrop: oklch(14% 0.01 260);
-  --ink: oklch(96% 0.008 90);
-  --ink-soft: oklch(72% 0.014 260);
+  /* Neutral black / charcoal only — no blue cast on chrome surfaces. */
+  --canvas: oklch(14% 0.004 100);
+  --surface: oklch(18% 0.004 100);
+  --sunk: oklch(22% 0.004 100);
+  --line: oklch(28% 0.005 100);
+  --line-strong: oklch(36% 0.005 100);
+  --backdrop: oklch(10% 0.003 100);
+  --ink: oklch(96% 0.004 100);
+  --ink-soft: oklch(70% 0.006 100);
   --brass: oklch(72% 0.11 76);
   --brass-ink: oklch(78% 0.1 76);
-  --brass-tint: oklch(28% 0.04 76);
+  --brass-tint: oklch(24% 0.03 76);
   --correct: oklch(72% 0.1 155);
-  --correct-tint: oklch(28% 0.04 155);
+  --correct-tint: oklch(24% 0.03 155);
   --wrong: oklch(68% 0.14 30);
-  --wrong-tint: oklch(28% 0.04 30);
-  --tech: oklch(72% 0.08 230);
-  --tech-tint: oklch(26% 0.03 230);
+  --wrong-tint: oklch(24% 0.03 30);
+  --tech: oklch(72% 0.06 230);
+  --tech-tint: oklch(22% 0.008 100);
   --nature: oklch(72% 0.09 145);
-  --nature-tint: oklch(26% 0.03 145);
+  --nature-tint: oklch(22% 0.01 145);
   --body-c: oklch(72% 0.12 15);
-  --body-tint: oklch(26% 0.04 15);
-  --shadow-color: 250 10% 4%;
+  --body-tint: oklch(22% 0.015 15);
+  --shadow-color: 0 0% 0%;
   color-scheme: dark;
 }
 

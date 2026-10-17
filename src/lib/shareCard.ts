@@ -23,10 +23,10 @@ export async function renderShareCardPng(opts: {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not available");
 
-  const bg = opts.dark ? "#1A1B1F" : "#F3F0EA";
-  const surface = opts.dark ? "#24262B" : "#FFFDF8";
-  const ink = opts.dark ? "#F4F1EA" : "#17181C";
-  const soft = opts.dark ? "#A8ADB6" : "#575C66";
+  const bg = opts.dark ? "#121212" : "#F3F0EA";
+  const surface = opts.dark ? "#1C1C1C" : "#FFFDF8";
+  const ink = opts.dark ? "#F2F2F2" : "#17181C";
+  const soft = opts.dark ? "#A3A3A3" : "#575C66";
   const brass = "#B5832F";
 
   ctx.fillStyle = bg;

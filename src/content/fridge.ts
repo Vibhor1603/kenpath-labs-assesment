@@ -1,0 +1,292 @@
+import type { Discovery } from "@/content/types";
+
+export const fridge: Discovery = {
+  id: "fridge",
+  domain: "technology",
+  day: 1,
+  catalogNo: "No. 001",
+  title: "How does a fridge stay cold?",
+  shortName: "Refrigerator",
+  parts: [
+    "shell",
+    "door",
+    "door-inner",
+    "gasket",
+    "interior",
+    "evaporator",
+    "compressor",
+    "condenser",
+    "expansion-valve",
+    "pipes",
+    "refrigerant",
+    "heat-in-arrows",
+    "heat-out",
+    "hatching",
+    "magnifier",
+    "frost",
+    "cold-puff",
+    "feet",
+  ],
+  steps: [
+    {
+      id: "fridge-1",
+      title: "The fridge moves heat",
+      body:
+        "A fridge does not make cold. It moves heat from inside the box to the room outside.",
+      more:
+        "Heat always moves from warm things to colder things, so the fridge must keep pushing it out.",
+      partFocus: ["interior", "heat-in-arrows"],
+      labels: [
+        {
+          partId: "interior",
+          text: "Warm food",
+          anchor: { x: 120, y: 180 },
+          side: "left",
+        },
+        {
+          partId: "heat-in-arrows",
+          text: "Heat moves out",
+          anchor: { x: 200, y: 160 },
+          side: "right",
+        },
+      ],
+      pose: {
+        door: { scaleX: 0.42, skewY: 2, rotate: -2 },
+        "door-inner": { opacity: 1 },
+        gasket: { opacity: 1 },
+        "heat-in-arrows": { opacity: 1 },
+        interior: { opacity: 1 },
+        shell: { opacity: 1 },
+      },
+    },
+    {
+      id: "fridge-2",
+      title: "Meet the refrigerant",
+      body:
+        "A special liquid called refrigerant flows in a closed loop of pipes. It carries heat from place to place.",
+      more: "The loop is sealed, so the same refrigerant goes around for many years.",
+      partFocus: ["pipes", "refrigerant"],
+      labels: [
+        {
+          partId: "pipes",
+          text: "Closed loop",
+          anchor: { x: 248, y: 200 },
+          side: "right",
+        },
+        {
+          partId: "refrigerant",
+          text: "Refrigerant",
+          anchor: { x: 180, y: 280 },
+          side: "left",
+          isPartName: true,
+        },
+      ],
+      pose: {
+        shell: { opacity: 0.18 },
+        hatching: { opacity: 1 },
+        door: { opacity: 0.35 },
+        pipes: { opacity: 1 },
+        refrigerant: { opacity: 1 },
+        compressor: { opacity: 0.5 },
+        condenser: { opacity: 0.5 },
+        "expansion-valve": { opacity: 0.5 },
+        evaporator: { opacity: 0.5 },
+      },
+    },
+    {
+      id: "fridge-3",
+      title: "The compressor squeezes",
+      body:
+        "The compressor squeezes the refrigerant gas. Squeezed gas gets hot and high pressure.",
+      more:
+        "The compressor makes the low humming sound you hear when the fridge is running.",
+      partFocus: ["compressor"],
+      labels: [
+        {
+          partId: "compressor",
+          text: "Compressor",
+          anchor: { x: 200, y: 360 },
+          side: "bottom",
+          isPartName: true,
+        },
+        {
+          partId: "refrigerant",
+          text: "Hot gas",
+          anchor: { x: 230, y: 320 },
+          side: "right",
+        },
+      ],
+      pose: {
+        shell: { opacity: 0.18 },
+        hatching: { opacity: 1 },
+        compressor: { x: 20, y: 12, scale: 1.12, opacity: 1 },
+        pipes: { opacity: 1 },
+        refrigerant: { opacity: 1 },
+      },
+    },
+    {
+      id: "fridge-4",
+      title: "Coils let heat out",
+      body:
+        "Coils at the back or bottom release that heat into the room. The gas cools and turns into a liquid.",
+      more: "This is why the back or bottom of a fridge feels warm to your hand.",
+      partFocus: ["condenser"],
+      labels: [
+        {
+          partId: "condenser",
+          text: "Condenser coils",
+          anchor: { x: 280, y: 240 },
+          side: "right",
+        },
+        {
+          partId: "heat-out",
+          text: "Heat leaves",
+          anchor: { x: 290, y: 200 },
+          side: "top",
+        },
+      ],
+      pose: {
+        shell: { opacity: 0.18 },
+        hatching: { opacity: 1 },
+        condenser: { x: 36, opacity: 1 },
+        "heat-out": { opacity: 1, y: -8 },
+        compressor: { x: 20, y: 12, scale: 1.12, opacity: 0.7 },
+        pipes: { opacity: 1 },
+        refrigerant: { opacity: 1 },
+      },
+    },
+    {
+      id: "fridge-5",
+      title: "A narrow tube drops pressure",
+      body:
+        "The liquid squeezes through a very narrow tube or valve. Its pressure drops and it gets very cold.",
+      more:
+        "In many fridges this narrow part is a long, thin copper pipe called a capillary tube.",
+      partFocus: ["expansion-valve"],
+      labels: [
+        {
+          partId: "expansion-valve",
+          text: "Narrow tube",
+          anchor: { x: 100, y: 300 },
+          side: "left",
+        },
+        {
+          partId: "refrigerant",
+          text: "Very cold",
+          anchor: { x: 130, y: 270 },
+          side: "left",
+        },
+      ],
+      pose: {
+        shell: { opacity: 0.18 },
+        hatching: { opacity: 1 },
+        magnifier: { opacity: 1, scale: 1 },
+        "expansion-valve": { opacity: 1, scale: 1.08 },
+        frost: { opacity: 1 },
+        refrigerant: { opacity: 1 },
+        pipes: { opacity: 1 },
+      },
+    },
+    {
+      id: "fridge-6",
+      title: "Cold pipes pull heat in",
+      body:
+        "Cold pipes inside soak up heat from your food. The refrigerant turns back into gas, and the loop starts again.",
+      more:
+        "Cold air from the freezer part sinks down and cools the shelves below.",
+      partFocus: ["evaporator", "interior"],
+      labels: [
+        {
+          partId: "evaporator",
+          text: "Cold pipes",
+          anchor: { x: 160, y: 120 },
+          side: "top",
+        },
+        {
+          partId: "interior",
+          text: "Heat goes in",
+          anchor: { x: 120, y: 200 },
+          side: "left",
+        },
+      ],
+      pose: {
+        shell: { opacity: 1 },
+        door: { scaleX: 1, skewY: 0, rotate: 0, opacity: 1 },
+        "door-inner": { opacity: 0 },
+        gasket: { opacity: 0.6 },
+        interior: { opacity: 1 },
+        evaporator: { opacity: 1 },
+        "heat-in-arrows": { opacity: 1 },
+        hatching: { opacity: 0 },
+        magnifier: { opacity: 0 },
+        pipes: { opacity: 0.4 },
+        refrigerant: { opacity: 0.5 },
+        compressor: { opacity: 0.4 },
+        condenser: { opacity: 0.4 },
+        "expansion-valve": { opacity: 0.4 },
+      },
+    },
+  ],
+  quiz: [
+    {
+      id: "fridge-q1",
+      q: "What does a fridge really do?",
+      options: [
+        "Moves heat from inside to outside",
+        "Makes new cold air",
+        "Destroys heat",
+        "Stores cold in the door",
+      ],
+      answer: 0,
+      why: "A fridge moves heat out. Cold is just less heat.",
+    },
+    {
+      id: "fridge-q2",
+      q: "Why are the coils on a fridge warm?",
+      options: [
+        "They release heat taken from inside",
+        "The motor is broken",
+        "They heat the food",
+        "They hold hot water",
+      ],
+      answer: 0,
+      why: "The coils give the inside heat to the room.",
+    },
+    {
+      id: "fridge-q3",
+      q: "What does the compressor do?",
+      options: [
+        "Squeezes the gas so it gets hot",
+        "Freezes the gas",
+        "Cleans the air",
+        "Turns gas into ice",
+      ],
+      answer: 0,
+      why: "Squeezing a gas makes it hot and high pressure.",
+    },
+    {
+      id: "fridge-q4",
+      q: "What happens when the liquid passes the narrow tube?",
+      options: [
+        "Its pressure drops and it gets very cold",
+        "It gets hotter",
+        "It stops moving",
+        "It turns into ice cubes",
+      ],
+      answer: 0,
+      why: "Lower pressure makes the refrigerant very cold.",
+    },
+    {
+      id: "fridge-q5",
+      q: "Why should you close the fridge door quickly?",
+      options: [
+        "Warm air gets in, so the fridge must move more heat",
+        "The light will break",
+        "The refrigerant will leak",
+        "The food gets heavier",
+      ],
+      answer: 0,
+      why: "An open door lets room heat in. Then the fridge works harder.",
+    },
+  ],
+};

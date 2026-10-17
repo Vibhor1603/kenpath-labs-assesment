@@ -137,7 +137,7 @@ export function HomeView({
               {copy.home.countLine(collectedCount, discoveries.length)}
             </p>
           </div>
-          <ul className="bg-surface ring-line mt-2 overflow-hidden rounded-[18px] ring-1">
+          <ul className="bg-surface ring-line mt-2 overflow-hidden rounded-[16px] ring-1">
             {discoveries.map((d, i) => (
               <li key={d.id} className={cn(i > 0 && "border-line border-t")}>
                 <CollectionRow
@@ -230,12 +230,12 @@ function ExhibitCard({
   return (
     <article
       data-domain={discovery.domain}
-      className="bg-surface ring-line overflow-hidden rounded-[22px] shadow-[var(--shadow-md)] ring-1"
+      className="bg-surface ring-line overflow-hidden rounded-[18px] shadow-[var(--shadow-md)] ring-1"
     >
       <button
         type="button"
         onClick={onStart}
-        className="exhibit-press relative block h-[240px] w-full overflow-hidden"
+        className="exhibit-press relative block h-[200px] w-full overflow-hidden"
         aria-label={`${collected ? copy.home.watchAgain : copy.home.startDiscovery}: ${discovery.title}`}
       >
         <span
@@ -247,11 +247,11 @@ function ExhibitCard({
           aria-hidden="true"
         />
         <span
-          className="hairline-floor absolute inset-x-10 bottom-[30px]"
+          className="hairline-floor absolute inset-x-8 bottom-[24px]"
           aria-hidden="true"
         />
         <span
-          className="absolute inset-x-0 top-7 bottom-6 flex justify-center"
+          className="absolute inset-x-0 top-6 bottom-5 flex justify-center"
           aria-hidden="true"
         >
           <span
@@ -267,23 +267,25 @@ function ExhibitCard({
             </span>
           </span>
         </span>
-        <span className="bg-surface/90 text-ink absolute top-3.5 left-3.5 inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold shadow-[var(--shadow-sm)]">
+        <span className="bg-surface/90 text-ink absolute top-2.5 left-2.5 inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold shadow-[var(--shadow-sm)]">
           <span className="bg-brass size-1.5 rounded-full" aria-hidden="true" />
           {copy.home.today}
         </span>
-        <span className="tabular text-ink-soft absolute top-3.5 right-3.5 inline-flex h-8 items-center rounded-full px-3 text-[13px] font-semibold">
+        <span className="tabular text-ink-soft absolute top-2.5 right-2.5 inline-flex h-7 items-center rounded-full px-2.5 text-[12px] font-semibold">
           {discovery.catalogNo}
         </span>
         {collected ? (
-          <span className="border-brass-ink bg-surface/80 font-display text-brass-ink absolute right-4 bottom-4 inline-flex -rotate-6 items-center gap-1 rounded-lg border-2 px-2 py-0.5 text-[13px] font-semibold tracking-[0.08em] uppercase">
-            <Check className="size-3.5" strokeWidth={3} aria-hidden="true" />
+          <span className="border-brass-ink bg-surface/80 font-display text-brass-ink absolute right-3 bottom-3 inline-flex -rotate-6 items-center gap-1 rounded-md border-2 px-1.5 py-0.5 text-[11px] font-semibold tracking-[0.08em] uppercase">
+            <Check className="size-3" strokeWidth={3} aria-hidden="true" />
             {copy.home.understood}
           </span>
         ) : null}
       </button>
-      <div className="px-4 pt-3 pb-4">
+      <div className="px-3.5 pt-3.5 pb-4">
         <p className="eyebrow text-domain">{domain}</p>
-        <h1 className="text-display mt-0.5">{discovery.title}</h1>
+        <h1 className="text-title mt-1 font-semibold tracking-[-0.02em]">
+          {discovery.title}
+        </h1>
         <p className="text-small text-ink-soft mt-1.5">
           {collected
             ? copy.home.collectedToday
@@ -337,17 +339,17 @@ function CollectionRow({
   return (
     <div
       data-domain={discovery.domain}
-      className="relative flex min-h-[68px] w-full items-center gap-3 px-3 py-2.5"
+      className="relative flex min-h-[58px] w-full items-center gap-2.5 px-2.5 py-2"
     >
       <button
         type="button"
         onClick={onPress}
         aria-disabled={locked || undefined}
-        className="pressable active:bg-sunk/50 flex min-w-0 flex-1 items-center gap-3 text-left"
+        className="pressable active:bg-sunk/50 flex min-w-0 flex-1 items-center gap-2.5 text-left"
       >
         <span
           className={cn(
-            "relative flex size-[48px] shrink-0 items-center justify-center overflow-hidden rounded-[14px]",
+            "relative flex size-[40px] shrink-0 items-center justify-center overflow-hidden rounded-[12px]",
             locked ? "bg-sunk text-line-strong" : "",
           )}
           style={
@@ -360,7 +362,7 @@ function CollectionRow({
           }
           aria-hidden="true"
         >
-          <span className={cn("block h-[38px]", arriving && "anim-pop-in")}>
+          <span className={cn("block h-[32px]", arriving && "anim-pop-in")}>
             <Exhibit
               id={discovery.id}
               idPrefix={`row-${discovery.id}`}
@@ -370,7 +372,7 @@ function CollectionRow({
           </span>
           {arriving ? (
             <span
-              className="ring-brass absolute inset-0 rounded-[14px] ring-2"
+              className="ring-brass absolute inset-0 rounded-[12px] ring-2"
               style={{ animation: "arrive-ring 900ms var(--ease-out) 200ms both" }}
             />
           ) : null}
@@ -378,7 +380,7 @@ function CollectionRow({
         <span className="min-w-0 flex-1">
           <span
             className={cn(
-              "block text-[15px] leading-[20px] font-semibold",
+              "block text-[14px] leading-[18px] font-semibold",
               locked ? "text-ink-soft" : "text-ink",
             )}
           >
@@ -386,7 +388,7 @@ function CollectionRow({
           </span>
           {locked ? (
             <span className="text-caption text-ink-soft mt-0.5 flex items-center gap-1 font-semibold">
-              <Lock className="size-3" aria-hidden="true" />
+              <Lock className="size-2.5" aria-hidden="true" />
               {lockedLine}
             </span>
           ) : (
@@ -403,9 +405,9 @@ function CollectionRow({
             </span>
           </span>
         ) : state.kind === "ready" ? (
-          <span className="text-domain inline-flex shrink-0 items-center gap-0.5 text-[12px] font-semibold">
+          <span className="text-domain inline-flex shrink-0 items-center gap-0.5 text-[11px] font-semibold">
             {copy.home.ready}
-            <ChevronRight className="size-3.5" aria-hidden="true" />
+            <ChevronRight className="size-3" aria-hidden="true" />
           </span>
         ) : null}
       </button>
@@ -414,9 +416,9 @@ function CollectionRow({
           type="button"
           onClick={onShare}
           aria-label={`${copy.share.shareAction} ${discovery.shortName}`}
-          className="pressable text-ink-soft hover:text-ink hover:bg-sunk/70 inline-flex size-10 shrink-0 items-center justify-center rounded-full"
+          className="pressable text-ink-soft hover:text-ink hover:bg-sunk/70 inline-flex size-8 shrink-0 items-center justify-center rounded-full"
         >
-          <Share2 className="size-4" aria-hidden="true" />
+          <Share2 className="size-3.5" aria-hidden="true" />
         </button>
       ) : null}
     </div>
@@ -437,20 +439,20 @@ function LockedTeaserRow({
       type="button"
       onClick={() => toast(`${teaser.name}. ${lockedLine}.`)}
       aria-disabled="true"
-      className="pressable active:bg-sunk/50 relative flex min-h-[68px] w-full items-center gap-3 px-3 py-2.5 text-left"
+      className="pressable active:bg-sunk/50 relative flex min-h-[58px] w-full items-center gap-2.5 px-2.5 py-2 text-left"
     >
       <span
-        className="bg-sunk text-line-strong relative flex size-[48px] shrink-0 items-center justify-center overflow-hidden rounded-[14px]"
+        className="bg-sunk text-line-strong relative flex size-[40px] shrink-0 items-center justify-center overflow-hidden rounded-[12px]"
         aria-hidden="true"
       >
-        <Lock className="size-4 opacity-50" strokeWidth={2} />
+        <Lock className="size-3.5 opacity-50" strokeWidth={2} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="text-ink-soft block text-[15px] leading-[20px] font-semibold">
+        <span className="text-ink-soft block text-[14px] leading-[18px] font-semibold">
           {teaser.name}
         </span>
         <span className="text-caption text-ink-soft mt-0.5 flex items-center gap-1 font-semibold">
-          <Lock className="size-3.5" aria-hidden="true" />
+          <Lock className="size-2.5" aria-hidden="true" />
           {lockedLine}
         </span>
       </span>

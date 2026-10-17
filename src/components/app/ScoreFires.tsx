@@ -22,7 +22,7 @@ export function ScoreFires({
     <span
       className={cn(
         "inline-flex items-center gap-0.5 tabular",
-        size === "sm" ? "text-[15px] leading-none" : "text-[18px] leading-none",
+        size === "sm" ? "text-[13px] leading-none" : "text-[18px] leading-none",
         className,
       )}
       role="img"

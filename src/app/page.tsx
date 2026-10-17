@@ -79,8 +79,12 @@ export default function Page() {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (progress.settings.darkMode) root.setAttribute("data-theme", "dark");
+    const dark = progress.settings.darkMode;
+    if (dark) root.setAttribute("data-theme", "dark");
     else root.removeAttribute("data-theme");
+    // Keep browser chrome (and local/prod) aligned with the same black canvas.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", dark ? "#121212" : "#F3F0EA");
   }, [progress.settings.darkMode]);
 
   const todayKey = toDateKey(new Date());

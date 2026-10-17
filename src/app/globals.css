@@ -211,29 +211,49 @@
 }
 
 html[data-theme="dark"] {
-  /* Neutral black / charcoal only — no blue cast on chrome surfaces. */
-  --canvas: oklch(14% 0.004 100);
-  --surface: oklch(18% 0.004 100);
-  --sunk: oklch(22% 0.004 100);
-  --line: oklch(28% 0.005 100);
-  --line-strong: oklch(36% 0.005 100);
-  --backdrop: oklch(10% 0.003 100);
-  --ink: oklch(96% 0.004 100);
-  --ink-soft: oklch(70% 0.006 100);
-  --brass: oklch(72% 0.11 76);
-  --brass-ink: oklch(78% 0.1 76);
-  --brass-tint: oklch(24% 0.03 76);
-  --correct: oklch(72% 0.1 155);
-  --correct-tint: oklch(24% 0.03 155);
-  --wrong: oklch(68% 0.14 30);
-  --wrong-tint: oklch(24% 0.03 30);
-  --tech: oklch(72% 0.06 230);
-  --tech-tint: oklch(22% 0.008 100);
-  --nature: oklch(72% 0.09 145);
-  --nature-tint: oklch(22% 0.01 145);
-  --body-c: oklch(72% 0.12 15);
-  --body-tint: oklch(22% 0.015 15);
+  /*
+    True black / charcoal hex so local (Turbopack) and prod paint the same.
+    Avoid low-chroma OKLCH hues that can read as blue-grey in some browsers.
+  */
+  --canvas: #121212;
+  --surface: #1a1a1a;
+  --sunk: #242424;
+  --line: #333333;
+  --line-strong: #454545;
+  --backdrop: #0a0a0a;
+  --ink: #f2f2f2;
+  --ink-soft: #a3a3a3;
+  --brass: #c9a04a;
+  --brass-ink: #e0b85c;
+  --brass-tint: #2a2418;
+  --correct: #5fbf8f;
+  --correct-tint: #1a2a22;
+  --wrong: #e07068;
+  --wrong-tint: #2a1a18;
+  --tech: #7eb3c9;
+  --tech-tint: #1c1c1c;
+  --nature: #7cbc84;
+  --nature-tint: #1c1c1c;
+  --body-c: #e08a96;
+  --body-tint: #1f1819;
   --shadow-color: 0 0% 0%;
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--canvas);
+  --secondary: var(--sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sunk);
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--sunk);
+  --accent-foreground: var(--ink);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ink);
   color-scheme: dark;
 }
 

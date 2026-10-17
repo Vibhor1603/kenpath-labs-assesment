@@ -2,7 +2,7 @@ import { Sprout } from "@/components/app/Sprout";
 import { copy } from "@/content/copy";
 
 const pill =
-  "pressable inline-flex h-10 items-center gap-1.5 rounded-full bg-surface pr-3.5 text-[15px] font-semibold text-ink ring-1 ring-line ring-inset";
+  "inline-flex h-8 items-center gap-1 rounded-full bg-surface/90 pr-2.5 text-[13px] font-semibold text-ink ring-1 ring-line/80 ring-inset";
 
 type PointsPillProps = { points: number; onPress: () => void; unseen: boolean };
 
@@ -12,10 +12,10 @@ export function PointsPill({ points, onPress, unseen }: PointsPillProps) {
     <button
       type="button"
       onClick={onPress}
-      className={`${pill} relative pl-1.5`}
+      className={`pressable ${pill} relative pl-1`}
       aria-label={`${points} Kenpath Points. Open points and badges`}
     >
-      <svg viewBox="0 0 24 24" className="size-7" aria-hidden="true">
+      <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
         <circle cx="12" cy="12" r="10" fill="#C8963F" />
         <circle cx="12" cy="12" r="10" fill="none" stroke="#8A5F17" strokeOpacity="0.5" />
         <circle cx="12" cy="12" r="6.6" fill="none" stroke="#F3D58D" strokeWidth="1.3" />
@@ -24,10 +24,10 @@ export function PointsPill({ points, onPress, unseen }: PointsPillProps) {
           fill="#FBF3E2"
         />
       </svg>
-      <span className="tabular">{points}</span>
+      <span className="tabular leading-none">{points}</span>
       {unseen ? (
         <span
-          className="bg-wrong ring-canvas absolute -top-0.5 -right-0.5 size-3 rounded-full ring-2"
+          className="bg-wrong ring-canvas absolute -top-0.5 -right-0.5 size-2.5 rounded-full ring-2"
           aria-hidden="true"
         />
       ) : null}
@@ -35,22 +35,22 @@ export function PointsPill({ points, onPress, unseen }: PointsPillProps) {
   );
 }
 
-/** Daily streak: sprout + explicit “Streak” label so the meaning is obvious. */
+/** Daily streak: compact single-line “Streak 2d” so it stays clear and light. */
 export function StreakPill({ count }: { count: number }) {
-  const days = copy.home.streakDays(count);
+  const short = count === 1 ? "1d" : `${count}d`;
   return (
     <span
-      className="bg-surface text-ink ring-line inline-flex h-10 max-w-[148px] items-center gap-1.5 rounded-full pr-3 pl-1.5 text-[13px] font-semibold ring-1 ring-inset"
+      className={`${pill} gap-1 pr-2.5 pl-1`}
       role="img"
-      aria-label={`${copy.home.streakLabel}: ${days}`}
-      title={`${copy.home.streakLabel}: ${days} in a row`}
+      aria-label={`${copy.home.streakLabel}: ${copy.home.streakDays(count)}`}
+      title={`${copy.home.streakLabel}: ${copy.home.streakDays(count)} in a row`}
     >
-      <Sprout count={count} />
-      <span className="min-w-0 leading-tight" aria-hidden="true">
-        <span className="text-ink-soft block text-[10px] font-semibold tracking-[0.04em] uppercase">
+      <Sprout count={count} className="size-5" />
+      <span className="flex items-baseline gap-1 leading-none" aria-hidden="true">
+        <span className="text-ink-soft text-[10px] font-semibold tracking-[0.06em] uppercase">
           {copy.home.streakLabel}
         </span>
-        <span className="tabular text-[13px] leading-none">{days}</span>
+        <span className="tabular text-[13px]">{short}</span>
       </span>
     </span>
   );

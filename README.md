@@ -47,7 +47,7 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
 Never commit `.env*` or the `service_role` key. Vercel production/preview/development already have the public vars set for this repo’s deployment.
 
-**Auth setting:** In the Supabase dashboard → Authentication → Providers → Email, turn **Confirm email** off for the assessment (or confirm via inbox). Signup expects an immediate session.
+**Auth:** New accounts are auto-confirmed in Postgres (`trg_public_auto_confirm`) so signup returns a session immediately and does not burn Supabase’s tiny built-in email rate limit. You can also turn **Confirm email** off under Authentication → Providers → Email.
 
 ### Useful commands
 

@@ -43,6 +43,7 @@ type LessonViewProps = {
   lite: boolean;
   visible: boolean;
   hinglish: boolean;
+  onHinglishChange: (value: boolean) => void;
   onStep: (step: number) => void;
   onClose: () => void;
   onTest: () => void;
@@ -55,6 +56,7 @@ export default function LessonView({
   lite,
   visible,
   hinglish,
+  onHinglishChange,
   onStep,
   onClose,
   onTest,
@@ -179,10 +181,42 @@ export default function LessonView({
         </button>
       </div>
 
-      <section className="bg-surface relative z-10 -mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px] px-5 pt-5 shadow-[0_-1px_0_var(--line),0_-16px_32px_-24px_rgb(23_24_28/0.35)]">
-        <p className="eyebrow text-domain" aria-hidden="true">
-          {copy.lesson.stepOf(index + 1, total)}
-        </p>
+      <section className="bg-surface relative z-10 -mt-5 flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-[24px] px-4 pt-4 shadow-[0_-1px_0_var(--line),0_-16px_32px_-24px_rgb(23_24_28/0.35)]">
+        <div className="flex items-center justify-between gap-2">
+          <p className="eyebrow text-domain" aria-hidden="true">
+            {copy.lesson.stepOf(index + 1, total)}
+          </p>
+          <div
+            className="bg-sunk inline-flex rounded-full p-0.5"
+            role="group"
+            aria-label={copy.home.hinglishLabel}
+          >
+            <button
+              type="button"
+              className={
+                hinglish
+                  ? "text-ink-soft rounded-full px-2.5 py-1 text-[12px] font-semibold"
+                  : "bg-surface text-ink rounded-full px-2.5 py-1 text-[12px] font-semibold shadow-[var(--shadow-sm)]"
+              }
+              aria-pressed={!hinglish}
+              onClick={() => onHinglishChange(false)}
+            >
+              {copy.lesson.englishToggle}
+            </button>
+            <button
+              type="button"
+              className={
+                hinglish
+                  ? "bg-surface text-ink rounded-full px-2.5 py-1 text-[12px] font-semibold shadow-[var(--shadow-sm)]"
+                  : "text-ink-soft rounded-full px-2.5 py-1 text-[12px] font-semibold"
+              }
+              aria-pressed={hinglish}
+              onClick={() => onHinglishChange(true)}
+            >
+              {copy.lesson.hinglishToggle}
+            </button>
+          </div>
+        </div>
         <h2 key={`t-${textKey}`} className="text-title mt-1.5">
           {words.map((w, i) => (
             <span key={i}>
@@ -200,7 +234,7 @@ export default function LessonView({
         </h2>
         <div
           key={`b-${textKey}`}
-          className="anim-fade-in mt-2 min-h-0 flex-1 overflow-y-auto pb-1"
+          className="anim-fade-in mt-1.5 min-h-0 flex-1 overflow-y-auto pb-1"
           style={{
             animationDelay: `${stepTimeline.titleAtMs + words.length * stepTimeline.wordStaggerMs + stepTimeline.bodyDelayMs}ms`,
           }}

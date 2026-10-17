@@ -47,20 +47,20 @@
   --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, sans-serif;
   --font-heading: var(--font-display);
 
-  --text-caption: 13px;
-  --text-caption--line-height: 18px;
-  --text-small: 15px;
-  --text-small--line-height: 21px;
-  --text-body: 17px;
-  --text-body--line-height: 25px;
-  --text-title-s: 20px;
-  --text-title-s--line-height: 26px;
-  --text-title: 24px;
-  --text-title--line-height: 29px;
-  --text-display: 30px;
-  --text-display--line-height: 34px;
-  --text-hero: 44px;
-  --text-hero--line-height: 46px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-small: 14px;
+  --text-small--line-height: 19px;
+  --text-body: 16px;
+  --text-body--line-height: 23px;
+  --text-title-s: 18px;
+  --text-title-s--line-height: 24px;
+  --text-title: 22px;
+  --text-title--line-height: 27px;
+  --text-display: 26px;
+  --text-display--line-height: 30px;
+  --text-hero: 40px;
+  --text-hero--line-height: 42px;
 
   --radius-sm: 10px;
   --radius-md: 14px;

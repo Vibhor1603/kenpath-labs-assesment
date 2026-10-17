@@ -7,7 +7,6 @@ import { ScoreFires } from "@/components/app/ScoreFires";
 import { PointsPill, StreakPill } from "@/components/app/StatusPills";
 import { HomeTopBar } from "@/components/app/TopBar";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { copy } from "@/content/copy";
 import { discoveries } from "@/content/index";
 import type { BadgeId, Discovery, DiscoveryId, Progress } from "@/content/types";
@@ -22,7 +21,7 @@ import {
   isDiscoveryUnlocked,
 } from "@/lib/unlock";
 import { cn } from "@/lib/utils";
-import { Check, ChevronRight, Lock } from "lucide-react";
+import { Check, ChevronRight, Lock, Share2 } from "lucide-react";
 
 const BADGE_ORDER: BadgeId[] = [
   "first-discovery",
@@ -40,10 +39,8 @@ type HomeViewProps = {
   justCollected: DiscoveryId | null;
   onStart: (id: DiscoveryId) => void;
   onOpenBadges: () => void;
-  onSetting: (
-    key: "haptics" | "calmMotion" | "darkMode" | "hinglish",
-    value: boolean,
-  ) => void;
+  onOpenMenu: () => void;
+  onShare: (id: DiscoveryId) => void;
 };
 
 type TileState =
@@ -71,7 +68,8 @@ export function HomeView({
   justCollected,
   onStart,
   onOpenBadges,
-  onSetting,
+  onOpenMenu,
+  onShare,
 }: HomeViewProps) {
   const today = getTodaysDiscoveryForDate(discoveries, progress, todayKey, isDemo);
   const featured = today.discovery;
@@ -95,6 +93,7 @@ export function HomeView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <HomeTopBar
+        onMenu={onOpenMenu}
         right={
           <>
             <PointsPill points={progress.points} onPress={onOpenBadges} unseen={unseen} />
@@ -103,20 +102,20 @@ export function HomeView({
         }
       />
 
-      <main className="scroll-area anim-view-in min-h-0 flex-1 px-[max(16px,env(safe-area-inset-left))] pb-8">
+      <main className="scroll-area anim-view-in min-h-0 flex-1 px-[max(14px,env(safe-area-inset-left))] pb-6">
         {!progress.introDismissed || isDemo ? (
-          <div className="flex min-h-9 items-center justify-between gap-3 px-1 pb-2">
+          <div className="flex min-h-8 items-center justify-between gap-3 px-1 pb-1.5">
             <p className="text-small text-ink-soft">
               {progress.introDismissed ? "" : copy.home.firstVisitLine}
             </p>
             {isDemo ? (
-              <span className="bg-brass-tint text-brass-ink shrink-0 rounded-full px-2.5 py-0.5 text-[13px] leading-[20px] font-semibold">
+              <span className="bg-brass-tint text-brass-ink shrink-0 rounded-full px-2 py-0.5 text-[12px] leading-[18px] font-semibold">
                 {copy.app.demoModeChip}
               </span>
             ) : null}
           </div>
         ) : (
-          <div className="h-2" />
+          <div className="h-1.5" />
         )}
 
         <ExhibitCard
@@ -124,9 +123,12 @@ export function HomeView({
           collected={featuredDone}
           score={progress.collected[featured.id]?.score}
           onStart={() => onStart(featured.id)}
+          onShare={
+            featuredDone ? () => onShare(featured.id) : undefined
+          }
         />
 
-        <section className="mt-8" aria-labelledby="museum-heading">
+        <section className="mt-6" aria-labelledby="museum-heading">
           <div className="flex items-baseline justify-between px-1">
             <h2 id="museum-heading" className="text-title-s">
               {copy.home.museumHeading}
@@ -135,7 +137,7 @@ export function HomeView({
               {copy.home.countLine(collectedCount, discoveries.length)}
             </p>
           </div>
-          <ul className="bg-surface ring-line mt-3 overflow-hidden rounded-[22px] ring-1">
+          <ul className="bg-surface ring-line mt-2 overflow-hidden rounded-[18px] ring-1">
             {discoveries.map((d, i) => (
               <li key={d.id} className={cn(i > 0 && "border-line border-t")}>
                 <CollectionRow
@@ -143,6 +145,7 @@ export function HomeView({
                   state={tileState(d)}
                   arriving={justCollected === d.id}
                   onOpen={() => onStart(d.id)}
+                  onShare={() => onShare(d.id)}
                 />
               </li>
             ))}
@@ -153,13 +156,13 @@ export function HomeView({
             ))}
           </ul>
           {collectedCount === discoveries.length ? (
-            <p className="text-small text-ink-soft mt-3 px-1">
+            <p className="text-small text-ink-soft mt-2 px-1">
               {copy.home.allCollectedLine}
             </p>
           ) : null}
         </section>
 
-        <section className="mt-8" aria-labelledby="badges-heading">
+        <section className="mt-6" aria-labelledby="badges-heading">
           <div className="flex items-center justify-between px-1">
             <h2 id="badges-heading" className="text-title-s">
               {copy.home.badgesHeading}
@@ -177,15 +180,15 @@ export function HomeView({
           <button
             type="button"
             onClick={onOpenBadges}
-            className="pressable bg-surface ring-line mt-2 grid w-full grid-cols-4 gap-1 rounded-[22px] px-2 pt-4 pb-3.5 ring-1"
+            className="pressable bg-surface ring-line mt-2 grid w-full grid-cols-4 gap-1 rounded-[18px] px-2 pt-3 pb-3 ring-1"
             aria-label={`Badges: ${earned.size} of ${BADGE_ORDER.length} earned. Open badges`}
           >
             {BADGE_ORDER.map((id) => (
-              <span key={id} className="flex flex-col items-center gap-1.5">
-                <BadgePin id={id} earned={earned.has(id)} className="size-[52px]" />
+              <span key={id} className="flex flex-col items-center gap-1">
+                <BadgePin id={id} earned={earned.has(id)} className="size-[44px]" />
                 <span
                   className={cn(
-                    "text-center text-[13px] leading-[16px] font-semibold",
+                    "text-center text-[11px] leading-[14px] font-semibold",
                     earned.has(id) ? "text-ink" : "text-ink-soft",
                   )}
                 >
@@ -196,46 +199,7 @@ export function HomeView({
           </button>
         </section>
 
-        <section className="mt-8" aria-labelledby="prefs-heading">
-          <h2 id="prefs-heading" className="text-title-s px-1">
-            {copy.home.prefsHeading}
-          </h2>
-          <div className="bg-surface ring-line mt-3 overflow-hidden rounded-[22px] ring-1">
-            <PreferenceRow
-              id="pref-haptics"
-              label={copy.home.hapticsLabel}
-              hint={copy.home.hapticsHint}
-              checked={progress.settings.haptics}
-              onChange={(v) => onSetting("haptics", v)}
-            />
-            <div className="border-line ml-4 border-t" />
-            <PreferenceRow
-              id="pref-calm"
-              label={copy.home.calmLabel}
-              hint={copy.home.calmHint}
-              checked={progress.settings.calmMotion}
-              onChange={(v) => onSetting("calmMotion", v)}
-            />
-            <div className="border-line ml-4 border-t" />
-            <PreferenceRow
-              id="pref-dark"
-              label={copy.home.darkLabel}
-              hint={copy.home.darkHint}
-              checked={progress.settings.darkMode}
-              onChange={(v) => onSetting("darkMode", v)}
-            />
-            <div className="border-line ml-4 border-t" />
-            <PreferenceRow
-              id="pref-hinglish"
-              label={copy.home.hinglishLabel}
-              hint={copy.home.hinglishHint}
-              checked={progress.settings.hinglish}
-              onChange={(v) => onSetting("hinglish", v)}
-            />
-          </div>
-        </section>
-
-        <p className="text-caption text-ink-soft mt-8 text-center">
+        <p className="text-caption text-ink-soft mt-6 text-center">
           {copy.home.savedLine}
         </p>
       </main>
@@ -254,22 +218,24 @@ function ExhibitCard({
   collected,
   score,
   onStart,
+  onShare,
 }: {
   discovery: Discovery;
   collected: boolean;
   score?: number;
   onStart: () => void;
+  onShare?: () => void;
 }) {
   const domain = copy.domains[discovery.domain];
   return (
     <article
       data-domain={discovery.domain}
-      className="bg-surface ring-line overflow-hidden rounded-[28px] shadow-[var(--shadow-md)] ring-1"
+      className="bg-surface ring-line overflow-hidden rounded-[22px] shadow-[var(--shadow-md)] ring-1"
     >
       <button
         type="button"
         onClick={onStart}
-        className="exhibit-press relative block h-[284px] w-full overflow-hidden"
+        className="exhibit-press relative block h-[240px] w-full overflow-hidden"
         aria-label={`${collected ? copy.home.watchAgain : copy.home.startDiscovery}: ${discovery.title}`}
       >
         <span
@@ -315,20 +281,28 @@ function ExhibitCard({
           </span>
         ) : null}
       </button>
-      <div className="px-5 pt-4 pb-5">
+      <div className="px-4 pt-3 pb-4">
         <p className="eyebrow text-domain">{domain}</p>
-        <h1 className="text-display mt-1">{discovery.title}</h1>
-        <p className="text-small text-ink-soft mt-2">
+        <h1 className="text-display mt-0.5">{discovery.title}</h1>
+        <p className="text-small text-ink-soft mt-1.5">
           {collected
             ? copy.home.collectedToday
             : copy.home.meta(discovery.steps.length, discovery.quiz.length)}
         </p>
         {collected && typeof score === "number" ? (
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-caption text-ink-soft font-semibold">
-              {copy.home.scoreLabel}
-            </span>
-            <ScoreFires score={score} size="sm" />
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-caption text-ink-soft font-semibold">
+                {copy.home.scoreLabel}
+              </span>
+              <ScoreFires score={score} size="sm" />
+            </div>
+            {onShare ? (
+              <Button variant="secondary" size="md" onClick={onShare}>
+                <Share2 className="size-3.5" aria-hidden="true" />
+                {copy.share.shareAction}
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -341,11 +315,13 @@ function CollectionRow({
   state,
   arriving,
   onOpen,
+  onShare,
 }: {
   discovery: Discovery;
   state: TileState;
   arriving: boolean;
   onOpen: () => void;
+  onShare: () => void;
 }) {
   const locked = state.kind === "locked";
   const lockedLine =
@@ -359,77 +335,91 @@ function CollectionRow({
     else onOpen();
   };
   return (
-    <button
-      type="button"
-      onClick={onPress}
+    <div
       data-domain={discovery.domain}
-      aria-disabled={locked || undefined}
-      className="pressable active:bg-sunk/50 relative flex min-h-[80px] w-full items-center gap-3.5 px-3.5 py-3 text-left"
+      className="relative flex min-h-[68px] w-full items-center gap-3 px-3 py-2.5"
     >
-      <span
-        className={cn(
-          "relative flex size-[56px] shrink-0 items-center justify-center overflow-hidden rounded-[16px]",
-          locked ? "bg-sunk text-line-strong" : "",
-        )}
-        style={
-          locked
-            ? undefined
-            : {
-                background:
-                  "radial-gradient(80% 80% at 50% 35%, var(--surface), var(--domain-tint))",
-              }
-        }
-        aria-hidden="true"
+      <button
+        type="button"
+        onClick={onPress}
+        aria-disabled={locked || undefined}
+        className="pressable active:bg-sunk/50 flex min-w-0 flex-1 items-center gap-3 text-left"
       >
-        <span className={cn("block h-[44px]", arriving && "anim-pop-in")}>
-          <Exhibit
-            id={discovery.id}
-            idPrefix={`row-${discovery.id}`}
-            tone={locked ? "silhouette" : "full"}
-            className="h-full w-auto"
-          />
-        </span>
-        {arriving ? (
-          <span
-            className="ring-brass absolute inset-0 rounded-[16px] ring-2"
-            style={{ animation: "arrive-ring 900ms var(--ease-out) 200ms both" }}
-          />
-        ) : null}
-      </span>
-      <span className="min-w-0 flex-1">
         <span
           className={cn(
-            "block text-[17px] leading-[22px] font-semibold",
-            locked ? "text-ink-soft" : "text-ink",
+            "relative flex size-[48px] shrink-0 items-center justify-center overflow-hidden rounded-[14px]",
+            locked ? "bg-sunk text-line-strong" : "",
           )}
+          style={
+            locked
+              ? undefined
+              : {
+                  background:
+                    "radial-gradient(80% 80% at 50% 35%, var(--surface), var(--domain-tint))",
+                }
+          }
+          aria-hidden="true"
         >
-          {discovery.shortName}
+          <span className={cn("block h-[38px]", arriving && "anim-pop-in")}>
+            <Exhibit
+              id={discovery.id}
+              idPrefix={`row-${discovery.id}`}
+              tone={locked ? "silhouette" : "full"}
+              className="h-full w-auto"
+            />
+          </span>
+          {arriving ? (
+            <span
+              className="ring-brass absolute inset-0 rounded-[14px] ring-2"
+              style={{ animation: "arrive-ring 900ms var(--ease-out) 200ms both" }}
+            />
+          ) : null}
         </span>
-        {locked ? (
-          <span className="text-caption text-ink-soft mt-0.5 flex items-center gap-1 font-semibold">
-            <Lock className="size-3.5" aria-hidden="true" />
-            {lockedLine}
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              "block text-[15px] leading-[20px] font-semibold",
+              locked ? "text-ink-soft" : "text-ink",
+            )}
+          >
+            {discovery.shortName}
           </span>
-        ) : (
-          <span className="tabular text-caption text-ink-soft mt-0.5 block">
-            {discovery.catalogNo} · {copy.domains[discovery.domain]}
+          {locked ? (
+            <span className="text-caption text-ink-soft mt-0.5 flex items-center gap-1 font-semibold">
+              <Lock className="size-3" aria-hidden="true" />
+              {lockedLine}
+            </span>
+          ) : (
+            <span className="tabular text-caption text-ink-soft mt-0.5 block">
+              {discovery.catalogNo} · {copy.domains[discovery.domain]}
+            </span>
+          )}
+        </span>
+        {state.kind === "collected" ? (
+          <span className="inline-flex shrink-0 flex-col items-end gap-0.5">
+            <ScoreFires score={state.score} size="sm" />
+            <span className="sr-only">
+              {copy.home.understood}. {copy.home.scoreLabel}: {state.score} of 5
+            </span>
           </span>
-        )}
-      </span>
+        ) : state.kind === "ready" ? (
+          <span className="text-domain inline-flex shrink-0 items-center gap-0.5 text-[12px] font-semibold">
+            {copy.home.ready}
+            <ChevronRight className="size-3.5" aria-hidden="true" />
+          </span>
+        ) : null}
+      </button>
       {state.kind === "collected" ? (
-        <span className="inline-flex shrink-0 flex-col items-end gap-0.5">
-          <ScoreFires score={state.score} size="sm" />
-          <span className="sr-only">
-            {copy.home.understood}. {copy.home.scoreLabel}: {state.score} of 5
-          </span>
-        </span>
-      ) : state.kind === "ready" ? (
-        <span className="text-domain inline-flex shrink-0 items-center gap-0.5 text-[13px] font-semibold">
-          {copy.home.ready}
-          <ChevronRight className="size-4" aria-hidden="true" />
-        </span>
+        <button
+          type="button"
+          onClick={onShare}
+          aria-label={`${copy.share.shareAction} ${discovery.shortName}`}
+          className="pressable text-ink-soft hover:text-ink hover:bg-sunk/70 inline-flex size-10 shrink-0 items-center justify-center rounded-full"
+        >
+          <Share2 className="size-4" aria-hidden="true" />
+        </button>
       ) : null}
-    </button>
+    </div>
   );
 }
 
@@ -447,16 +437,16 @@ function LockedTeaserRow({
       type="button"
       onClick={() => toast(`${teaser.name}. ${lockedLine}.`)}
       aria-disabled="true"
-      className="pressable active:bg-sunk/50 relative flex min-h-[80px] w-full items-center gap-3.5 px-3.5 py-3 text-left"
+      className="pressable active:bg-sunk/50 relative flex min-h-[68px] w-full items-center gap-3 px-3 py-2.5 text-left"
     >
       <span
-        className="bg-sunk text-line-strong relative flex size-[56px] shrink-0 items-center justify-center overflow-hidden rounded-[16px]"
+        className="bg-sunk text-line-strong relative flex size-[48px] shrink-0 items-center justify-center overflow-hidden rounded-[14px]"
         aria-hidden="true"
       >
-        <Lock className="size-5 opacity-50" strokeWidth={2} />
+        <Lock className="size-4 opacity-50" strokeWidth={2} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="text-ink-soft block text-[17px] leading-[22px] font-semibold">
+        <span className="text-ink-soft block text-[15px] leading-[20px] font-semibold">
           {teaser.name}
         </span>
         <span className="text-caption text-ink-soft mt-0.5 flex items-center gap-1 font-semibold">
@@ -471,35 +461,3 @@ function LockedTeaserRow({
   );
 }
 
-function PreferenceRow({
-  id,
-  label,
-  hint,
-  checked,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  hint: string;
-  checked: boolean;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <div className="flex min-h-[68px] items-center gap-3 py-2 pr-2 pl-4">
-      <div className="min-w-0 flex-1">
-        <p id={`${id}-label`} className="text-[17px] leading-[22px] font-semibold">
-          {label}
-        </p>
-        <p id={`${id}-hint`} className="text-caption text-ink-soft">
-          {hint}
-        </p>
-      </div>
-      <Switch
-        checked={checked}
-        onCheckedChange={onChange}
-        aria-labelledby={`${id}-label`}
-        aria-describedby={`${id}-hint`}
-      />
-    </div>
-  );
-}

@@ -13,6 +13,7 @@ import { ViewErrorBoundary } from "@/components/app/ViewErrorBoundary";
 import { copy } from "@/content/copy";
 import { discoveries, getDiscovery } from "@/content/index";
 import type { BadgeId, DiscoveryId, TestOutcome } from "@/content/types";
+import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { useDeviceFlags } from "@/hooks/useDeviceFlags";
 import { useOnlineToast } from "@/hooks/useOnlineToast";
@@ -40,6 +41,21 @@ const NewBadgeDialog = dynamic(
   () => import("@/components/app/NewBadgeDialog").then((m) => m.NewBadgeDialog),
   { ssr: false },
 );
+const MenuSheet = dynamic(
+  () => import("@/components/app/MenuSheet").then((m) => m.MenuSheet),
+  { ssr: false },
+);
+const AuthSheet = dynamic(
+  () => import("@/components/app/AuthSheet").then((m) => m.AuthSheet),
+  { ssr: false },
+);
+const ShareAchievementSheet = dynamic(
+  () =>
+    import("@/components/app/ShareAchievementSheet").then(
+      (m) => m.ShareAchievementSheet,
+    ),
+  { ssr: false },
+);
 
 type Attempt = { discoveryId: DiscoveryId; results: boolean[]; outcome: TestOutcome };
 
@@ -57,6 +73,7 @@ export default function Page() {
   const isDemo = useDemoMode();
   const { view, push, replace, home } = useView();
   const { progress, hydrated, dispatch, finishTest } = useProgress();
+  const { user, register, login, logout, rename } = useAuth();
   const flags = useDeviceFlags(progress.settings.calmMotion);
   useOnlineToast();
 
@@ -68,10 +85,14 @@ export default function Page() {
 
   const todayKey = toDateKey(new Date());
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [shareId, setShareId] = useState<DiscoveryId | null>(null);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [testKey, setTestKey] = useState(0);
   const [justCollected, setJustCollected] = useState<DiscoveryId | null>(null);
   const [badgeQueue, setBadgeQueue] = useState<BadgeId[]>([]);
+  const shareDiscovery = shareId ? getDiscovery(shareId) : null;
 
   const animate = flags.mounted && !flags.calm && !flags.lite;
   const go = useCallback(
@@ -157,7 +178,8 @@ export default function Page() {
           justCollected={justCollected}
           onStart={start}
           onOpenBadges={openBadges}
-          onSetting={(key, value) => dispatch({ type: "setSetting", key, value })}
+          onOpenMenu={() => setMenuOpen(true)}
+          onShare={(id) => setShareId(id)}
         />
       );
     }
@@ -171,6 +193,9 @@ export default function Page() {
             lite={flags.lite}
             visible={flags.visible}
             hinglish={progress.settings.hinglish}
+            onHinglishChange={(value) =>
+              dispatch({ type: "setSetting", key: "hinglish", value })
+            }
             onStep={(step) => replace({ name: "lesson", discoveryId: active.id, step })}
             onClose={goHome}
             onTest={() => {
@@ -248,6 +273,36 @@ export default function Page() {
         open={badgesOpen}
         onOpenChange={onBadgesOpenChange}
         progress={progress}
+      />
+      <MenuSheet
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        progress={progress}
+        user={user}
+        onSetting={(key, value) => dispatch({ type: "setSetting", key, value })}
+        onLoginPress={() => setAuthOpen(true)}
+        onLogout={logout}
+        onRename={rename}
+      />
+      <AuthSheet
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        onRegister={register}
+        onLogin={login}
+      />
+      <ShareAchievementSheet
+        open={Boolean(shareId && shareDiscovery)}
+        onOpenChange={(open) => {
+          if (!open) setShareId(null);
+        }}
+        discovery={shareDiscovery ?? null}
+        score={shareId ? (progress.collected[shareId]?.score ?? 4) : 4}
+        user={user}
+        dark={progress.settings.darkMode}
+        onNeedAuth={() => {
+          setShareId(null);
+          setAuthOpen(true);
+        }}
       />
       <NewBadgeDialog badge={badgeQueue[0] ?? null} onDone={onBadgeDone} />
     </AppFrame>

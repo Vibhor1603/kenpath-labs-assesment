@@ -22,6 +22,8 @@ test("3 of 5 fails; 4 of 5 collects", async ({ page }) => {
         firstVisitDate: key,
         maxUnlockedDay: 1,
         points: 0,
+        spentPoints: 0,
+        redemptions: [],
         streak: { count: 0, lastPerfectDate: null },
         attempts: {},
         collected: {},

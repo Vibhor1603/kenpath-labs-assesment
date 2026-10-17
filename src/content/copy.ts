@@ -69,6 +69,7 @@ export const copy = {
     loginOrCreate: "Log in or create account",
     haveAccount: "Already have an account? Log in",
     needAccount: "New here? Create an account",
+    progressSaved: "Your museum progress is saved to this account.",
   },
   share: {
     title: "Share achievement",
@@ -171,12 +172,26 @@ export const copy = {
     gotIt: "Nice",
   },
   wallet: {
-    heading: "Demo reward wallet",
-    unitsLabel: "Reward units",
-    unitsHint: (per: number) => `${per} points = 1 reward unit in this demo`,
+    heading: "Reward shop",
+    unitsLabel: "Spendable",
+    unitsHint: () => "Pass tests to earn Ken points. Spend them on demo coupons.",
     unitsValue: (n: number) => `${n}`,
     about:
-      "In a full Kenpath app, points can unlock real rewards after a server checks your score. This demo only saves points on your phone. It does not send rewards off the device.",
+      "Ken points from every passed test go into your wallet. Open the shop from the points chip to redeem Domino's, Swiggy and more. Coupons are demo codes on this phone only.",
+  },
+  shop: {
+    title: "Reward shop",
+    subtitle: "Spend Ken points on demo brand coupons.",
+    balanceLabel: "Available points",
+    earnedLine: (earned: number, spent: number) =>
+      `Earned ${earned} · spent ${spent}`,
+    catalogHeading: "Coupons",
+    unlockedHeading: "Your coupons",
+    emptyUnlocked: "No coupons yet. Pass a test, then redeem here.",
+    redeem: "Redeem",
+    needMore: "Need more",
+    redeemedToast: (brand: string) => `${brand} coupon unlocked.`,
+    notEnough: "Not enough points yet.",
   },
   easterEggs: {
     fridgeDoor: "Shh. You are letting heat in.",

@@ -39,6 +39,7 @@ type HomeViewProps = {
   justCollected: DiscoveryId | null;
   onStart: (id: DiscoveryId) => void;
   onOpenBadges: () => void;
+  onOpenShop: () => void;
   onOpenMenu: () => void;
   onShare: (id: DiscoveryId) => void;
 };
@@ -68,6 +69,7 @@ export function HomeView({
   justCollected,
   onStart,
   onOpenBadges,
+  onOpenShop,
   onOpenMenu,
   onShare,
 }: HomeViewProps) {
@@ -96,7 +98,11 @@ export function HomeView({
         onMenu={onOpenMenu}
         right={
           <>
-            <PointsPill points={progress.points} onPress={onOpenBadges} unseen={unseen} />
+            <PointsPill
+              points={progress.points - (progress.spentPoints ?? 0)}
+              onPress={onOpenShop}
+              unseen={unseen}
+            />
             <StreakPill count={streak} />
           </>
         }

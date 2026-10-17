@@ -2,6 +2,10 @@
 
 import { copy } from "@/content/copy";
 import type { DiscoveryId, Progress, TestOutcome } from "@/content/types";
+import {
+  accountStorageKey,
+  mergeProgress,
+} from "@/lib/accountProgress";
 import { toDateKey } from "@/lib/date";
 import {
   createFreshProgress,
@@ -25,6 +29,13 @@ type UseProgressReturn = {
   hydrated: boolean;
   dispatch: (action: ProgressAction) => void;
   finishTest: (discoveryId: DiscoveryId, score: number) => TestOutcome;
+  /**
+   * Bind the current (guest) museum to an account: merge any saved account
+   * progress, keep phone work, and mirror saves to that account key.
+   */
+  attachAccount: (username: string, opts?: { silent?: boolean }) => void;
+  /** Flush current progress onto the account key, then stop mirroring. */
+  detachAccount: () => void;
 };
 
 let adapterSingleton: StorageAdapter | null = null;
@@ -34,14 +45,10 @@ function getAdapter(): StorageAdapter {
   return adapterSingleton;
 }
 
-/**
- * Progress store. Starts with a deterministic fresh state so the static HTML
- * and the first client render match, then adopts saved progress in an effect.
- * The frame stays hidden for returning visitors until then (see the boot script).
- */
 export function useProgress(): UseProgressReturn {
   const todayKey = toDateKey(new Date());
   const saverRef = useRef<ReturnType<typeof createDebouncedSaver> | null>(null);
+  const accountRef = useRef<string | null>(null);
   const [progress, dispatch] = useReducer(progressReducer, todayKey, createFreshProgress);
   const [hydrated, setHydrated] = useState(false);
   const progressRef = useRef(progress);
@@ -49,6 +56,16 @@ export function useProgress(): UseProgressReturn {
   useEffect(() => {
     progressRef.current = progress;
   }, [progress]);
+
+  const writeAccountMirror = useCallback((next: Progress) => {
+    const user = accountRef.current;
+    if (!user) return;
+    try {
+      getAdapter().setItem(accountStorageKey(user), JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     const adapter = getAdapter();
@@ -59,14 +76,19 @@ export function useProgress(): UseProgressReturn {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the one-time storage read
     setHydrated(true);
     if (!adapter.isPersistent) toast(copy.storage.toast);
-    const onPageHide = () => saverRef.current?.flush(progressRef.current);
+    const onPageHide = () => {
+      saverRef.current?.flush(progressRef.current);
+      writeAccountMirror(progressRef.current);
+    };
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);
-  }, [todayKey]);
+  }, [todayKey, writeAccountMirror]);
 
   useEffect(() => {
-    if (hydrated) saverRef.current?.save(progress);
-  }, [progress, hydrated]);
+    if (!hydrated) return;
+    saverRef.current?.save(progress);
+    writeAccountMirror(progress);
+  }, [progress, hydrated, writeAccountMirror]);
 
   const finishTest = useCallback(
     (discoveryId: DiscoveryId, score: number): TestOutcome => {
@@ -86,5 +108,47 @@ export function useProgress(): UseProgressReturn {
     [todayKey],
   );
 
-  return { progress, hydrated, dispatch, finishTest };
+  const attachAccount = useCallback(
+    (username: string, opts?: { silent?: boolean }) => {
+      const key = username.trim().toLowerCase();
+      const adapter = getAdapter();
+      const guest = progressRef.current;
+      const alreadyBound = accountRef.current === key;
+      const raw = adapter.getItem(accountStorageKey(key));
+      const account = raw ? parseProgress(raw, todayKey).progress : null;
+      const merged = account ? mergeProgress(guest, account) : guest;
+      accountRef.current = key;
+      try {
+        adapter.setItem(STORAGE_KEY, JSON.stringify(merged));
+        adapter.setItem(accountStorageKey(key), JSON.stringify(merged));
+      } catch {
+        // ignore
+      }
+      progressRef.current = merged;
+      dispatch({ type: "adoptSnapshot", snapshot: merged, todayKey });
+      if (!opts?.silent && !alreadyBound) toast(copy.auth.progressSaved);
+    },
+    [todayKey],
+  );
+
+  const detachAccount = useCallback(() => {
+    const user = accountRef.current;
+    if (user) {
+      try {
+        getAdapter().setItem(accountStorageKey(user), JSON.stringify(progressRef.current));
+      } catch {
+        // ignore
+      }
+    }
+    accountRef.current = null;
+  }, []);
+
+  return {
+    progress,
+    hydrated,
+    dispatch,
+    finishTest,
+    attachAccount,
+    detachAccount,
+  };
 }

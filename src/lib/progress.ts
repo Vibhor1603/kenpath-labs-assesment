@@ -12,6 +12,7 @@ import {
   isPassingScore,
   isPerfectScore,
 } from "@/lib/scoring";
+import { canRedeem, getShopItem, makeCouponCode } from "@/lib/rewards";
 import { getStreakAfterPass } from "@/lib/streak";
 import { getDayIndex, getNextMaxUnlockedDay } from "@/lib/unlock";
 
@@ -22,6 +23,8 @@ export function createBlankProgress(todayKey: string): Progress {
     firstVisitDate: todayKey,
     maxUnlockedDay: 1,
     points: 0,
+    spentPoints: 0,
+    redemptions: [],
     streak: { count: 0, lastPerfectDate: null },
     attempts: {},
     collected: {},
@@ -50,6 +53,8 @@ export function createShowcaseProgress(todayKey: string): Progress {
     firstVisitDate: dayAMinus2,
     maxUnlockedDay: 3,
     points: 550,
+    spentPoints: 0,
+    redemptions: [],
     streak: { count: 2, lastPerfectDate: dayAMinus1 },
     attempts: { fridge: 1, leaf: 1 },
     collected: {
@@ -93,6 +98,12 @@ export type ProgressAction =
       value: boolean;
     }
   | { type: "dismissIntro" }
+  | {
+      type: "redeemShopItem";
+      itemId: string;
+      username: string;
+      nowIso: string;
+    }
   | { type: "adoptSnapshot"; snapshot: Progress; todayKey: string };
 
 export function progressReducer(state: Progress, action: ProgressAction): Progress {
@@ -205,6 +216,30 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
       };
     case "dismissIntro":
       return { ...state, introDismissed: true };
+    case "redeemShopItem": {
+      const item = getShopItem(action.itemId);
+      if (!item) return state;
+      const spent = state.spentPoints ?? 0;
+      if (!canRedeem(item, state.points, spent)) return state;
+      const code = makeCouponCode(
+        item.codePrefix,
+        action.username,
+        (state.redemptions ?? []).length,
+      );
+      return {
+        ...state,
+        spentPoints: spent + item.cost,
+        redemptions: [
+          ...(state.redemptions ?? []),
+          {
+            itemId: item.id,
+            cost: item.cost,
+            code,
+            redeemedAt: action.nowIso,
+          },
+        ],
+      };
+    }
     case "adoptSnapshot": {
       const dayIndex = getDayIndex(action.snapshot.firstVisitDate, action.todayKey);
       const capped = Math.min(dayIndex, 3) as 1 | 2 | 3;
@@ -216,6 +251,8 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
       };
       return {
         ...action.snapshot,
+        spentPoints: action.snapshot.spentPoints ?? 0,
+        redemptions: action.snapshot.redemptions ?? [],
         revisitClaimed: action.snapshot.revisitClaimed ?? {},
         settings,
         maxUnlockedDay: getNextMaxUnlockedDay(action.snapshot.maxUnlockedDay, capped),

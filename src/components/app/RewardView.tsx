@@ -211,6 +211,9 @@ export default function RewardView({
             <span className="text-caption text-ink-soft mt-1 font-semibold tracking-[0.06em] uppercase">
               {copy.reward.pointsLabel} · {copy.reward.total(totalPoints)}
             </span>
+            <span className="text-caption text-ink-soft mt-1.5 text-center">
+              {copy.wallet.unitsHint()}
+            </span>
             {outcome.breakdown.discovery > 0 || outcome.breakdown.streak > 0 ? (
               <ul className="text-small text-ink-soft mt-2.5 space-y-0.5 text-center">
                 {outcome.breakdown.discovery > 0 ? (

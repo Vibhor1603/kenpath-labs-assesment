@@ -89,11 +89,23 @@ export type Badge = {
   earnedAt: string;
 };
 
+export type RedemptionRecord = {
+  itemId: string;
+  cost: number;
+  code: string;
+  redeemedAt: string;
+};
+
 export type Progress = {
   version: 1;
   firstVisitDate: string;
   maxUnlockedDay: DayNumber;
+  /** Lifetime Ken points earned from tests (never decreases). */
   points: number;
+  /** Points spent in the reward shop. Balance = points - spentPoints. */
+  spentPoints: number;
+  /** Coupons unlocked from the shop. */
+  redemptions: RedemptionRecord[];
   streak: Streak;
   attempts: Partial<Record<DiscoveryId, number>>;
   collected: Partial<Record<DiscoveryId, CollectedEntry>>;

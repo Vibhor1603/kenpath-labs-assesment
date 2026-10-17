@@ -1,10 +1,11 @@
 "use client";
 
 import { BadgePin } from "@/components/app/BadgePin";
+import { Button } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/sheet";
 import { copy } from "@/content/copy";
 import type { BadgeId, Progress } from "@/content/types";
-import { demoRewardUnits, POINTS_PER_REWARD_UNIT } from "@/lib/rewards";
+import { availableBalance } from "@/lib/rewards";
 import { cn } from "@/lib/utils";
 
 const ORDER: BadgeId[] = [
@@ -31,11 +32,17 @@ type BadgeSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   progress: Progress;
+  onOpenShop?: () => void;
 };
 
-export function BadgeSheet({ open, onOpenChange, progress }: BadgeSheetProps) {
+export function BadgeSheet({
+  open,
+  onOpenChange,
+  progress,
+  onOpenShop,
+}: BadgeSheetProps) {
   const earned = new Map(progress.badges.map((b) => [b.id, b.earnedAt]));
-  const units = demoRewardUnits(progress.points);
+  const balance = availableBalance(progress.points, progress.spentPoints ?? 0);
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title={copy.badges.sheetTitle}>
       <div className="bg-brass-tint/70 rounded-[20px] px-4 py-3.5">
@@ -53,13 +60,23 @@ export function BadgeSheet({ open, onOpenChange, progress }: BadgeSheetProps) {
               {copy.wallet.unitsLabel}
             </p>
             <p className="tabular font-display text-title-s text-ink font-semibold">
-              {copy.wallet.unitsValue(units)}
+              {copy.wallet.unitsValue(balance)}
             </p>
           </div>
         </div>
-        <p className="text-caption text-ink-soft mt-2">
-          {copy.wallet.unitsHint(POINTS_PER_REWARD_UNIT)}
-        </p>
+        <p className="text-caption text-ink-soft mt-2">{copy.wallet.unitsHint()}</p>
+        {onOpenShop ? (
+          <Button
+            className="mt-3 w-full"
+            size="md"
+            onClick={() => {
+              onOpenChange(false);
+              onOpenShop();
+            }}
+          >
+            {copy.shop.title}
+          </Button>
+        ) : null}
       </div>
 
       <div className="ring-line mt-3 rounded-[20px] px-4 py-3 ring-1">

@@ -22,6 +22,8 @@ import { useView, type ViewState } from "@/hooks/useView";
 import { getUnseenBadges } from "@/lib/badges";
 import { toDateKey } from "@/lib/date";
 import { loadLessonArt } from "@/lib/lessonArt";
+import { canRedeem, getShopItem } from "@/lib/rewards";
+import { toast } from "@/lib/toast";
 import {
   getDayIndex,
   getNextMaxUnlockedDay,
@@ -56,6 +58,10 @@ const ShareAchievementSheet = dynamic(
     ),
   { ssr: false },
 );
+const ShopSheet = dynamic(
+  () => import("@/components/app/ShopSheet").then((m) => m.ShopSheet),
+  { ssr: false },
+);
 
 type Attempt = { discoveryId: DiscoveryId; results: boolean[]; outcome: TestOutcome };
 
@@ -72,7 +78,8 @@ export default function Page() {
   // Reads ?demo= before useView rewrites the URL for a deep link (effects run in hook order).
   const isDemo = useDemoMode();
   const { view, push, replace, home } = useView();
-  const { progress, hydrated, dispatch, finishTest } = useProgress();
+  const { progress, hydrated, dispatch, finishTest, attachAccount, detachAccount } =
+    useProgress();
   const { user, register, login, logout, rename } = useAuth();
   const flags = useDeviceFlags(progress.settings.calmMotion);
   useOnlineToast();
@@ -87,8 +94,15 @@ export default function Page() {
     if (meta) meta.setAttribute("content", dark ? "#121212" : "#F3F0EA");
   }, [progress.settings.darkMode]);
 
+  // Returning session: bind account mirror without a toast every reload.
+  useEffect(() => {
+    if (!hydrated || !user) return;
+    attachAccount(user.username, { silent: true });
+  }, [hydrated, user?.username, attachAccount, user]);
+
   const todayKey = toDateKey(new Date());
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [shareId, setShareId] = useState<DiscoveryId | null>(null);
@@ -182,6 +196,7 @@ export default function Page() {
           justCollected={justCollected}
           onStart={start}
           onOpenBadges={openBadges}
+          onOpenShop={() => setShopOpen(true)}
           onOpenMenu={() => setMenuOpen(true)}
           onShare={(id) => setShareId(id)}
         />
@@ -277,6 +292,34 @@ export default function Page() {
         open={badgesOpen}
         onOpenChange={onBadgesOpenChange}
         progress={progress}
+        onOpenShop={() => setShopOpen(true)}
+      />
+      <ShopSheet
+        open={shopOpen}
+        onOpenChange={setShopOpen}
+        progress={progress}
+        username={user?.username ?? null}
+        onNeedAuth={() => {
+          setShopOpen(false);
+          setAuthOpen(true);
+        }}
+        onRedeem={(itemId) => {
+          const item = getShopItem(itemId);
+          if (
+            !item ||
+            !canRedeem(item, progress.points, progress.spentPoints ?? 0)
+          ) {
+            toast(copy.shop.notEnough);
+            return;
+          }
+          dispatch({
+            type: "redeemShopItem",
+            itemId,
+            username: user?.username ?? "guest",
+            nowIso: new Date().toISOString(),
+          });
+          toast(copy.shop.redeemedToast(item.brand));
+        }}
       />
       <MenuSheet
         open={menuOpen}
@@ -285,14 +328,25 @@ export default function Page() {
         user={user}
         onSetting={(key, value) => dispatch({ type: "setSetting", key, value })}
         onLoginPress={() => setAuthOpen(true)}
-        onLogout={logout}
+        onLogout={() => {
+          detachAccount();
+          logout();
+        }}
         onRename={rename}
       />
       <AuthSheet
         open={authOpen}
         onOpenChange={setAuthOpen}
-        onRegister={register}
-        onLogin={login}
+        onRegister={async (username, password) => {
+          const result = await register(username, password);
+          if (result.ok) attachAccount(username);
+          return result;
+        }}
+        onLogin={async (username, password) => {
+          const result = await login(username, password);
+          if (result.ok) attachAccount(username);
+          return result;
+        }}
       />
       <ShareAchievementSheet
         open={Boolean(shareId && shareDiscovery)}

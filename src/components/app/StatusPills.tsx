@@ -13,7 +13,7 @@ export function PointsPill({ points, onPress, unseen }: PointsPillProps) {
       type="button"
       onClick={onPress}
       className={`pressable ${pill} relative pl-1`}
-      aria-label={`${points} Kenpath Points. Open points and badges`}
+      aria-label={`${points} Ken points available. Open reward shop`}
     >
       <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
         <circle cx="12" cy="12" r="10" fill="#C8963F" />

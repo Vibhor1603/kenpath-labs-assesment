@@ -80,6 +80,8 @@ export function parseProgress(
     const progress: Progress = {
       ...parsed,
       collected,
+      spentPoints: (parsed as Progress).spentPoints ?? 0,
+      redemptions: (parsed as Progress).redemptions ?? [],
       revisitClaimed: (parsed as Progress).revisitClaimed ?? {},
       introDismissed: Boolean((parsed as Progress).introDismissed ?? false),
       settings: {

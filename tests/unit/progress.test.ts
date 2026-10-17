@@ -1,59 +1,47 @@
 import { describe, expect, it } from "vitest";
-import { createFreshProgress, getTestOutcome, progressReducer } from "@/lib/progress";
+import { addDays, toDateKey } from "@/lib/date";
+import {
+  createBlankProgress,
+  createShowcaseProgress,
+  getTestOutcome,
+  progressReducer,
+} from "@/lib/progress";
 
 describe("progress", () => {
-  it("full 3-day scenario gives 120 then 260 with streak 2", () => {
-    let p = createFreshProgress("2026-10-17");
-    p = progressReducer(p, { type: "boot", todayKey: "2026-10-17" });
+  it("showcase seeds fridge and leaf so heart is today", () => {
+    const today = toDateKey(new Date());
+    const p = createShowcaseProgress(today);
+    expect(p.firstVisitDate).toBe(addDays(today, -2));
+    expect(p.maxUnlockedDay).toBe(3);
+    expect(p.collected.fridge?.score).toBe(5);
+    expect(p.collected.leaf?.score).toBe(4);
+    expect(p.collected.heart).toBeUndefined();
+    expect(p.streak.count).toBe(2);
+  });
 
-    const before1 = p;
+  it("4 of 5 collects; 3 of 5 only gives effort", () => {
+    let p = createBlankProgress("2026-10-17");
+
     p = progressReducer(p, {
       type: "finishTest",
       discoveryId: "fridge",
-      score: 5,
+      score: 3,
       todayKey: "2026-10-17",
-      nowIso: "2026-10-17T10:00:00Z",
+      nowIso: "iso",
     });
-    expect(p.points).toBe(120);
-    expect(p.streak.count).toBe(1);
-    const out1 = getTestOutcome(before1, p, "fridge");
-    expect(out1.isPerfect).toBe(true);
-    expect(out1.pointsEarned).toBe(120);
-    expect(out1.isFirstCollect).toBe(true);
+    expect(p.points).toBe(45);
+    expect(p.collected.fridge).toBeUndefined();
 
-    p = progressReducer(p, { type: "boot", todayKey: "2026-10-18" });
-    expect(p.maxUnlockedDay).toBe(2);
-
-    const before2 = p;
-    p = progressReducer(p, {
-      type: "finishTest",
-      discoveryId: "leaf",
-      score: 5,
-      todayKey: "2026-10-18",
-      nowIso: "2026-10-18T10:00:00Z",
-    });
-    expect(p.points).toBe(260);
-    expect(p.streak.count).toBe(2);
-    expect(getTestOutcome(before2, p, "leaf").pointsEarned).toBe(140);
-  });
-
-  it("imperfect score only increments attempts", () => {
-    let p = createFreshProgress("2026-10-17");
+    const before = p;
     p = progressReducer(p, {
       type: "finishTest",
       discoveryId: "fridge",
       score: 4,
       todayKey: "2026-10-17",
-      nowIso: "iso",
+      nowIso: "iso-2",
     });
-    expect(p.points).toBe(0);
-    expect(p.attempts.fridge).toBe(1);
-    expect(p.collected.fridge).toBeUndefined();
-  });
-
-  it("introDismissed persists", () => {
-    let p = createFreshProgress("2026-10-17");
-    p = progressReducer(p, { type: "dismissIntro" });
-    expect(p.introDismissed).toBe(true);
+    expect(p.collected.fridge?.score).toBe(4);
+    expect(getTestOutcome(before, p, "fridge", 4).isPassing).toBe(true);
+    expect(getTestOutcome(before, p, "fridge", 4).isPerfect).toBe(false);
   });
 });

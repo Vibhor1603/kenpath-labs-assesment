@@ -24,9 +24,9 @@ export const legend = [
   { color: c.bloodPoor, label: "Low in oxygen" },
 ] as const;
 
-export const legendSteps = [3];
+export const legendSteps = [5, 6];
 
-export const notes: Record<number, string> = { 3: copy.heart.loopColorNote };
+export const notes: Record<number, string> = { 6: copy.heart.loopColorNote };
 
 /** One beat, 72 beats a minute. Valves and squeeze share this clock. */
 const BEAT = "833ms";

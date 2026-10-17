@@ -25,9 +25,13 @@ export const fridge: Discovery = {
   steps: [
     {
       id: "fridge-1",
-      title: "The fridge moves heat",
-      body: "A fridge does not make cold. It moves heat from inside the box to the room outside.",
-      more: "Heat always moves from warm things to colder things, so the fridge must keep pushing it out.",
+      title: "Heat leaves the box",
+      body: "Food puts heat into the fridge. The fridge does not make cold air. It moves that heat out into the room so the box stays cooler.",
+      beats: [
+        "Warm things want to share heat with cooler things.",
+        "The fridge works by pushing heat outside, again and again.",
+      ],
+      more: "If the door stays open, room heat rushes back in and the fridge must work harder.",
       partFocus: ["interior", "heat-path"],
       labels: [
         {
@@ -38,7 +42,7 @@ export const fridge: Discovery = {
         },
         {
           partId: "heat-path",
-          text: "Heat moves out",
+          text: "Heat goes out",
           anchor: { x: 368, y: 226 },
           side: "top",
         },
@@ -48,14 +52,18 @@ export const fridge: Discovery = {
     },
     {
       id: "fridge-2",
-      title: "Meet the refrigerant",
-      body: "A special liquid called refrigerant flows in a closed loop of pipes. It carries heat from place to place.",
-      more: "The loop is sealed, so the same refrigerant goes around for many years.",
+      title: "A liquid carries heat",
+      body: "A special liquid called refrigerant travels in a closed pipe loop. It picks up heat in one place and drops it somewhere else.",
+      beats: [
+        "The loop is sealed. The same liquid goes around for years.",
+        "Next we follow what happens to that liquid, step by step.",
+      ],
+      more: "You never top up refrigerant in a normal home fridge. The loop stays closed.",
       partFocus: ["pipes", "refrigerant"],
       labels: [
         {
           partId: "pipes",
-          text: "Closed loop",
+          text: "Closed pipes",
           anchor: { x: 370, y: 330 },
           side: "left",
         },
@@ -78,8 +86,12 @@ export const fridge: Discovery = {
     {
       id: "fridge-3",
       title: "The compressor squeezes",
-      body: "The compressor squeezes the refrigerant gas. Squeezed gas gets hot and high pressure.",
-      more: "The compressor makes the low humming sound you hear when the fridge is running.",
+      body: "First the gas goes into the compressor. The compressor squeezes it hard. Squeezed gas gets hot and the pressure goes up.",
+      beats: [
+        "This pump is the start of every cycle.",
+        "The hum you hear is often this part working.",
+      ],
+      more: "Without this squeeze, the heat cannot leave the fridge the way the loop needs.",
       partFocus: ["compressor"],
       labels: [
         {
@@ -101,14 +113,18 @@ export const fridge: Discovery = {
     },
     {
       id: "fridge-4",
-      title: "Coils let heat out",
-      body: "Coils at the back or bottom release that heat into the room. The gas cools and turns into a liquid.",
-      more: "This is why the back or bottom of a fridge feels warm to your hand.",
-      partFocus: ["condenser"],
+      title: "Heat goes to the room",
+      body: "Next the hot gas flows through coils on the back or bottom. Heat from the gas moves into the room air. The coils feel warm when you touch them.",
+      beats: [
+        "That warmth is heat that left your food.",
+        "After this, the gas is ready to change into a liquid.",
+      ],
+      more: "Keep the coils clean and with space to breathe so heat can leave easily.",
+      partFocus: ["condenser", "heat-out"],
       labels: [
         {
           partId: "condenser",
-          text: "Condenser coils",
+          text: "Warm coils",
           anchor: { x: 330, y: 186 },
           side: "left",
         },
@@ -124,9 +140,40 @@ export const fridge: Discovery = {
     },
     {
       id: "fridge-5",
-      title: "A narrow tube drops pressure",
-      body: "The liquid squeezes through a very narrow tube or valve. Its pressure drops and it gets very cold.",
-      more: "In many fridges this narrow part is a long, thin copper pipe called a capillary tube.",
+      title: "The gas turns liquid",
+      body: "As heat keeps leaving the coils, the hot gas cools down. It turns into a liquid. Same stuff, new form.",
+      beats: [
+        "Liquid refrigerant can squeeze through a tiny tube next.",
+        "That change of form is needed for the cold part of the loop.",
+      ],
+      more: "Changing from gas to liquid releases heat. That is why the coils feel warm.",
+      partFocus: ["condenser", "refrigerant"],
+      labels: [
+        {
+          partId: "condenser",
+          text: "Cooling coils",
+          anchor: { x: 330, y: 186 },
+          side: "left",
+        },
+        {
+          partId: "refrigerant",
+          text: "Now liquid",
+          anchor: { x: 340, y: 280 },
+          side: "left",
+        },
+      ],
+      pose: { refrigerant: { opacity: 1 }, condenser: { opacity: 1 } },
+      camera: { x: 318, y: 220, scale: 1.55 },
+    },
+    {
+      id: "fridge-6",
+      title: "Pressure drops fast",
+      body: "Then the liquid is forced through a very narrow tube. The pressure drops. The liquid gets very cold, very quickly.",
+      beats: [
+        "Low pressure makes the refrigerant cold.",
+        "Now it is ready to take heat from inside the fridge.",
+      ],
+      more: "Many fridges use a long thin copper tube for this job instead of a big valve.",
       partFocus: ["expansion-valve"],
       labels: [
         {
@@ -146,10 +193,14 @@ export const fridge: Discovery = {
       camera: { x: 316, y: 360, scale: 2.4 },
     },
     {
-      id: "fridge-6",
-      title: "Cold pipes pull heat in",
-      body: "Cold pipes inside soak up heat from your food. The refrigerant turns back into gas, and the loop starts again.",
-      more: "Cold air from the freezer part sinks down and cools the shelves below.",
+      id: "fridge-7",
+      title: "Cold pipes take heat",
+      body: "Cold pipes inside the fridge touch the warm air and food. They soak up heat. The refrigerant boils back into a gas as it takes that heat.",
+      beats: [
+        "This is how the food gets colder.",
+        "The gas then travels back toward the compressor.",
+      ],
+      more: "Frost can form when water in the air freezes on those cold pipes.",
       partFocus: ["evaporator", "interior", "heat-in-arrows"],
       labels: [
         {
@@ -171,6 +222,132 @@ export const fridge: Discovery = {
         refrigerant: { opacity: 1 },
       },
       camera: { x: 205, y: 160, scale: 1.7 },
+    },
+    {
+      id: "fridge-8",
+      title: "The loop starts again",
+      body: "The gas goes back to the compressor. Squeeze, dump heat, drop pressure, take heat. The whole loop runs again and again.",
+      beats: [
+        "As long as this loop runs, the box stays colder than the room.",
+        "You now have the full path from warm food to heat outside.",
+      ],
+      more: "Four jobs, one sealed loop: squeeze, dump, drop, soak.",
+      partFocus: [],
+      labels: [
+        {
+          partId: "compressor",
+          text: "Starts again",
+          anchor: { x: 236, y: 404 },
+          side: "top",
+        },
+        {
+          partId: "evaporator",
+          text: "Food stays cold",
+          anchor: { x: 252, y: 100 },
+          side: "top",
+        },
+      ],
+      pose: {
+        refrigerant: { opacity: 1 },
+        "heat-path": { opacity: 0.7 },
+        "heat-out": { opacity: 0.6 },
+        frost: { opacity: 0.5 },
+      },
+      camera: { x: 214, y: 266, scale: 1.05 },
+    },
+    {
+      id: "fridge-9",
+      title: "Why the box feels cold",
+      body: "Cold is not a thing the fridge makes. When heat leaves the food and air inside, those things feel colder to your hand. Less heat left behind is what we call cold.",
+      beats: [
+        "Heat always flows from warmer things toward cooler ones.",
+        "The loop keeps the inside cooler than the room around it.",
+      ],
+      more: "A thermometer in the fridge reads lower because heat keeps leaving.",
+      partFocus: ["evaporator", "frost"],
+      labels: [
+        {
+          partId: "evaporator",
+          text: "Heat leaving",
+          anchor: { x: 252, y: 100 },
+          side: "top",
+        },
+        {
+          partId: "frost",
+          text: "Less heat left",
+          anchor: { x: 180, y: 140 },
+          side: "right",
+        },
+      ],
+      pose: {
+        frost: { opacity: 1 },
+        evaporator: { opacity: 1 },
+        "heat-in-arrows": { opacity: 0.8 },
+      },
+      camera: { x: 205, y: 160, scale: 1.55 },
+    },
+    {
+      id: "fridge-10",
+      title: "Insulation slows heat",
+      body: "Thick walls trap the cool air. Foam insulation slows room heat sneaking back in. The door gasket seals the gap so the loop does not fight a constant leak.",
+      beats: [
+        "Good seals mean the compressor runs less often.",
+        "A dirty gasket or open door wastes the work of the loop.",
+      ],
+      more: "Insulation does not create cold. It only slows unwanted heat flow.",
+      partFocus: ["cabinet", "door"],
+      labels: [
+        {
+          partId: "cabinet",
+          text: "Insulated walls",
+          anchor: { x: 100, y: 220 },
+          side: "right",
+        },
+        {
+          partId: "door",
+          text: "Door seal",
+          anchor: { x: 300, y: 200 },
+          side: "left",
+        },
+      ],
+      pose: {
+        cabinet: { opacity: 1 },
+        door: { opacity: 1 },
+        frost: { opacity: 0.4 },
+      },
+      camera: { x: 214, y: 240, scale: 1.1 },
+    },
+    {
+      id: "fridge-11",
+      title: "One sealed heat pump",
+      body: "Put it together: the fridge is a small heat pump. It squeezes refrigerant, dumps heat outside, drops pressure, then soaks heat inside. Four jobs, one closed loop.",
+      beats: [
+        "That is why coils feel warm and the box feels cold.",
+        "You now know the science behind everyday cold food.",
+      ],
+      more: "Engineers call this a vapor compression cycle. Same idea as many air conditioners.",
+      partFocus: [],
+      labels: [
+        {
+          partId: "compressor",
+          text: "Squeeze first",
+          anchor: { x: 236, y: 404 },
+          side: "top",
+        },
+        {
+          partId: "condenser",
+          text: "Heat out here",
+          anchor: { x: 80, y: 320 },
+          side: "right",
+        },
+      ],
+      pose: {
+        refrigerant: { opacity: 1 },
+        "heat-path": { opacity: 0.7 },
+        "heat-out": { opacity: 0.6 },
+        frost: { opacity: 0.5 },
+      },
+      camera: { x: 214, y: 266, scale: 1.05 },
     },
   ],
   quiz: [

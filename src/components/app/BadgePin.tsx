@@ -6,6 +6,8 @@ const ENAMEL: Record<BadgeId, { base: string; deep: string }> = {
   "perfect-scholar": { base: "#A23A4D", deep: "#772536" },
   "streak-3": { base: "#386B43", deep: "#244C2E" },
   "curious-mind": { base: "#5B4B8A", deep: "#3E3166" },
+  "close-call": { base: "#9A6B2F", deep: "#6E4A1C" },
+  "return-visitor": { base: "#3D6F6A", deep: "#27504C" },
 };
 
 function Glyph({ id }: { id: BadgeId }) {
@@ -53,6 +55,20 @@ function Glyph({ id }: { id: BadgeId }) {
           <circle cx="24" cy="17" r="3.2" stroke="none" />
           <circle cx="17" cy="29" r="3.2" stroke="none" />
           <circle cx="31" cy="29" r="3.2" stroke="none" />
+        </g>
+      );
+    case "close-call":
+      return (
+        <g fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+          <circle cx="24" cy="24" r="10" />
+          <path d="M24 16 V25 L29 28" />
+        </g>
+      );
+    case "return-visitor":
+      return (
+        <g fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+          <path d="M30 18 A9 9 0 1 0 33 27" />
+          <path d="M30 18 L26 14 M30 18 L34 15" />
         </g>
       );
   }

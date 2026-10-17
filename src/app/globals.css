@@ -207,6 +207,33 @@
   --input: var(--line);
   --ring: var(--ink);
   --radius: 18px;
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --canvas: oklch(18% 0.01 260);
+  --surface: oklch(22% 0.012 260);
+  --sunk: oklch(26% 0.012 260);
+  --line: oklch(32% 0.014 260);
+  --line-strong: oklch(40% 0.016 260);
+  --backdrop: oklch(14% 0.01 260);
+  --ink: oklch(96% 0.008 90);
+  --ink-soft: oklch(72% 0.014 260);
+  --brass: oklch(72% 0.11 76);
+  --brass-ink: oklch(78% 0.1 76);
+  --brass-tint: oklch(28% 0.04 76);
+  --correct: oklch(72% 0.1 155);
+  --correct-tint: oklch(28% 0.04 155);
+  --wrong: oklch(68% 0.14 30);
+  --wrong-tint: oklch(28% 0.04 30);
+  --tech: oklch(72% 0.08 230);
+  --tech-tint: oklch(26% 0.03 230);
+  --nature: oklch(72% 0.09 145);
+  --nature-tint: oklch(26% 0.03 145);
+  --body-c: oklch(72% 0.12 15);
+  --body-tint: oklch(26% 0.04 15);
+  --shadow-color: 250 10% 4%;
+  color-scheme: dark;
 }
 
 [data-domain="technology"] {
@@ -760,4 +787,38 @@ html[data-calm] .anim-shake {
 ::view-transition-group(topbar),
 ::view-transition-group(bottombar) {
   animation-duration: 0ms;
+}
+
+
+/* Ken reward confetti: transform + opacity only, auto-removed after ~1.5s */
+.ken-confetti {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 30;
+}
+.ken-confetti-bit {
+  position: absolute;
+  top: 42%;
+  left: var(--cx);
+  width: 8px;
+  height: 10px;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(0deg) scale(0.6);
+  animation: ken-confetti-fall var(--dur) var(--ease-out) var(--delay) both;
+}
+@keyframes ken-confetti-fall {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg) scale(0.5); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(0, 120px, 0) rotate(var(--rot)) scale(1); }
+}
+html[data-lite] .ken-confetti,
+html[data-calm] .ken-confetti {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ken-confetti {
+    display: none;
+  }
 }

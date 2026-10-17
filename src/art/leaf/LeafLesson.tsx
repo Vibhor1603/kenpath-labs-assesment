@@ -23,7 +23,7 @@ export const legend = [
   { color: c.sugar, label: "Sugar" },
 ] as const;
 
-export const legendSteps = [1, 2, 3];
+export const legendSteps = [2, 3, 4, 5];
 
 const T = { tx: 120, ty: 190, rot: -24, s: 0.86 };
 const PLACE = `translate(${T.tx} ${T.ty}) rotate(${T.rot}) scale(${T.s})`;

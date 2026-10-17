@@ -4,11 +4,15 @@ const ALL_DISCOVERIES: DiscoveryId[] = ["fridge", "leaf", "heart"];
 
 export function getNewBadges(
   after: Progress,
-  ctx: { isPerfect: boolean; attemptNumber: number },
+  ctx: {
+    isPerfect: boolean;
+    isPassing: boolean;
+    attemptNumber: number;
+    score: number;
+    isRevisitBonus: boolean;
+  },
   earnedAtIso: string,
 ): Badge[] {
-  if (!ctx.isPerfect) return [];
-
   const earned = new Set(after.badges.map((b) => b.id));
   const next: Badge[] = [];
 
@@ -19,8 +23,14 @@ export function getNewBadges(
     }
   };
 
+  // Near miss: 3 of 5 (one below the pass line).
+  if (ctx.score === 3) add("close-call");
+  if (ctx.isRevisitBonus) add("return-visitor");
+
+  if (!ctx.isPassing) return next;
+
   add("first-discovery");
-  if (ctx.attemptNumber === 1) add("perfect-scholar");
+  if (ctx.isPerfect && ctx.attemptNumber === 1) add("perfect-scholar");
   if (after.streak.count >= 3) add("streak-3");
   if (ALL_DISCOVERIES.every((id) => after.collected[id])) add("curious-mind");
 

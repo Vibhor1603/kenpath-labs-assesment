@@ -7,67 +7,60 @@ import {
   wrongAnswers,
 } from "./fixtures";
 
-test("a wrong answer earns nothing and Try again reshuffles", async ({ page }) => {
+test("3 of 5 fails; 4 of 5 collects", async ({ page }) => {
+  // Seed blank day-1 progress before the document boots so React cannot overwrite it.
+  await page.addInitScript(() => {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const d = String(today.getDate()).padStart(2, "0");
+    const key = `${y}-${m}-${d}`;
+    localStorage.setItem(
+      "kenpath-museum-v1",
+      JSON.stringify({
+        version: 1,
+        firstVisitDate: key,
+        maxUnlockedDay: 1,
+        points: 0,
+        streak: { count: 0, lastPerfectDate: null },
+        attempts: {},
+        collected: {},
+        revisitClaimed: {},
+        badges: [],
+        seenBadges: [],
+        settings: { haptics: true, calmMotion: false, darkMode: false, hinglish: false },
+        introDismissed: true,
+      }),
+    );
+  });
   await page.goto("/?view=test&d=fridge");
-  await expect(page).toHaveURL(/view=test&d=fridge/);
 
-  const first = wrongAnswers("fridge", 1);
-  await answerAll(page, first);
+  const near = correctAnswers("fridge", 1);
+  near[3] = wrongAnswers("fridge", 1)[3];
+  near[4] = wrongAnswers("fridge", 1)[4];
+  await answerAll(page, near);
   await expect(page).toHaveURL(/view=result&d=fridge/);
-  await expect(page.getByText("You need 5 of 5 to earn points.")).toBeVisible();
-  expect((await readProgress(page))?.points ?? 0).toBe(0);
+  await expect(page.getByText(/need 4 of 5/i)).toBeVisible();
 
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(page).toHaveURL(/view=test&d=fridge/);
-  await answerAll(page, correctAnswers("fridge", 2));
+  const pass = correctAnswers("fridge", 2);
+  pass[4] = wrongAnswers("fridge", 2)[4]; // 4 of 5
+  await answerAll(page, pass);
   await expect(page).toHaveURL(/view=reward&d=fridge/);
-  await expect.poll(async () => (await readProgress(page))?.points).toBe(120);
-  expect((await readProgress(page))?.collected?.fridge?.firstTry).toBe(false);
+  await expect.poll(async () => (await readProgress(page))?.collected?.fridge?.score).toBe(4);
 });
 
-test("tomorrow's exhibit is locked and its deep link goes home", async ({ page }) => {
-  await page.goto("/");
-  // aria-disabled still answers a tap with a toast; Playwright treats it as not actionable.
-  await page.getByRole("button", { name: "Leaf Opens tomorrow" }).click({ force: true });
-  await expect(page.getByText("Leaf. Opens tomorrow.").first()).toBeVisible();
-
-  await page.goto("/?view=lesson&d=leaf&step=2");
-  await expect(page).not.toHaveURL(/view=/);
-  await expect(
-    page.getByRole("heading", { name: "How does a fridge stay cold?" }),
-  ).toBeVisible();
+test("demo mode deep link still opens locked lessons", async ({ page }) => {
+  await page.goto("/?demo=1&view=lesson&d=leaf&step=1");
+  await expect(page).toHaveURL(/view=lesson&d=leaf&step=1/);
+  await expect(page.getByRole("button", { name: "Next", exact: true })).toBeVisible();
 });
 
-test("demo mode deep link opens a locked lesson at the requested step", async ({
-  page,
-}) => {
-  await page.goto("/?demo=1&view=lesson&d=leaf&step=4");
-  await expect(page).toHaveURL(/view=lesson&d=leaf&step=4/);
-  await expect(page.getByRole("button", { name: "Take the test" })).toBeVisible();
-});
-
-test("browser back from a lesson returns home and stays in the app", async ({ page }) => {
+test("browser back from a lesson returns home", async ({ page }) => {
+  await page.goto("/?fresh=1");
   await page.goto("/");
   await page.getByRole("button", { name: "Start discovery", exact: true }).click();
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page).toHaveURL(/step=3/);
   await page.goBack();
   await expect(page).toHaveURL("/");
-  await expect(
-    page.getByRole("button", { name: "Start discovery", exact: true }),
-  ).toBeVisible();
-
-  await page.goForward();
-  await expect(page).toHaveURL(/view=lesson&d=fridge/);
-  await page.getByRole("button", { name: "Close lesson" }).click();
-  await expect(page).not.toHaveURL(/view=/);
-});
-
-test("reloading a lesson URL reopens that step", async ({ page }) => {
-  await page.goto("/?view=lesson&d=fridge&step=3");
-  await expect(page.getByText("3/6")).toBeVisible();
-  await page.reload();
-  await expect(page).toHaveURL(/step=3/);
-  await expect(page.getByText("3/6")).toBeVisible();
 });

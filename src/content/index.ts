@@ -1,9 +1,17 @@
-import { fridge } from "@/content/fridge";
-import { heart } from "@/content/heart";
-import { leaf } from "@/content/leaf";
+import { fridge as fridgeRaw } from "@/content/fridge";
+import { heart as heartRaw } from "@/content/heart";
+import { leaf as leafRaw } from "@/content/leaf";
+import { withHinglish } from "@/content/hinglish";
 import type { Discovery, DiscoveryId, LessonArtModule } from "@/content/types";
 
-export { fridge, leaf, heart };
+function localize(d: Discovery): Discovery {
+  return { ...d, steps: d.steps.map(withHinglish) };
+}
+
+export const fridge = localize(fridgeRaw);
+export const leaf = localize(leafRaw);
+export const heart = localize(heartRaw);
+
 export type { Discovery, DiscoveryId } from "@/content/types";
 export { copy } from "@/content/copy";
 export { sources } from "@/content/sources";

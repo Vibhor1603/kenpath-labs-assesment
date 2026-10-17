@@ -42,6 +42,7 @@ type LessonViewProps = {
   reduced: boolean;
   lite: boolean;
   visible: boolean;
+  hinglish: boolean;
   onStep: (step: number) => void;
   onClose: () => void;
   onTest: () => void;
@@ -53,13 +54,24 @@ export default function LessonView({
   reduced,
   lite,
   visible,
+  hinglish,
   onStep,
   onClose,
   onTest,
 }: LessonViewProps) {
   const total = discovery.steps.length;
   const index = Math.min(Math.max(step, 1), total) - 1;
-  const current = discovery.steps[index];
+  const raw = discovery.steps[index];
+  const current =
+    hinglish && raw.hinglish
+      ? {
+          ...raw,
+          title: raw.hinglish.title,
+          body: raw.hinglish.body,
+          beats: raw.hinglish.beats ?? raw.beats,
+          more: raw.hinglish.more ?? raw.more,
+        }
+      : raw;
   const isLast = index === total - 1;
   const art = useLessonArt(discovery.id);
   const [replayKey, setReplayKey] = useState(0);
@@ -171,7 +183,7 @@ export default function LessonView({
         <p className="eyebrow text-domain" aria-hidden="true">
           {copy.lesson.stepOf(index + 1, total)}
         </p>
-        <h2 key={`t-${textKey}`} className="text-title mt-1.5 min-h-[58px]">
+        <h2 key={`t-${textKey}`} className="text-title mt-1.5">
           {words.map((w, i) => (
             <span key={i}>
               <span
@@ -186,18 +198,34 @@ export default function LessonView({
             </span>
           ))}
         </h2>
-        <p
+        <div
           key={`b-${textKey}`}
-          className="anim-fade-in text-body text-ink-soft mt-2 min-h-[75px]"
+          className="anim-fade-in mt-2 min-h-0 flex-1 overflow-y-auto pb-1"
           style={{
             animationDelay: `${stepTimeline.titleAtMs + words.length * stepTimeline.wordStaggerMs + stepTimeline.bodyDelayMs}ms`,
           }}
         >
-          {current.body}
-        </p>
-        {note ? (
-          <p className="anim-fade-in text-caption text-ink-soft mt-1">{note}</p>
-        ) : null}
+          <p className="text-body text-ink-soft">{current.body}</p>
+          {current.beats && current.beats.length > 0 ? (
+            <ul className="mt-3 space-y-2">
+              {current.beats.map((beat) => (
+                <li
+                  key={beat}
+                  className="text-body text-ink flex gap-2.5 leading-snug"
+                >
+                  <span
+                    className="bg-domain mt-2 size-1.5 shrink-0 rounded-full"
+                    aria-hidden="true"
+                  />
+                  <span>{beat}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {note ? (
+            <p className="text-caption text-ink-soft mt-3">{note}</p>
+          ) : null}
+        </div>
         <div className="mt-auto flex items-center pb-1.5">
           <Button
             variant="quiet"

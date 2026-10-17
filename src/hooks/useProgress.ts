@@ -81,7 +81,7 @@ export function useProgress(): UseProgressReturn {
       const after = progressReducer(before, action);
       progressRef.current = after;
       dispatch(action);
-      return getTestOutcome(before, after, discoveryId);
+      return getTestOutcome(before, after, discoveryId, score);
     },
     [todayKey],
   );

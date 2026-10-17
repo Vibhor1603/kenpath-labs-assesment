@@ -2,21 +2,22 @@ import type { BadgeId } from "@/content/types";
 
 export const copy = {
   app: {
-    wordmark: "How Things Work",
+    wordmark: "Ken",
+    tagline: "Become smarter every day",
     demoModeChip: "Demo mode",
   },
   home: {
-    firstVisitLine: "A new thing to understand, every day.",
+    firstVisitLine: "One new thing to understand, every day.",
     startDiscovery: "Start discovery",
     museumHeading: "Your museum",
     thingsUnderstand: (count: number) =>
       count === 1 ? "1 thing you understand" : `${count} things you understand`,
-    allCollectedLine:
-      "You understand all 3. In the full app, a new one arrives tomorrow.",
+    allCollectedLine: "You understand all 3. Come back tomorrow for more.",
     today: "Today",
     collectedToday: "Understood. A new one opens tomorrow.",
     watchAgain: "Watch it again",
-    meta: (steps: number, questions: number) => `${steps} steps, ${questions} questions`,
+    meta: (steps: number, questions: number) =>
+      `${steps} steps, ${questions} questions`,
     countLine: (count: number, total: number) => `${count} of ${total} understood`,
     badgesHeading: "Badges",
     seeAll: "See all",
@@ -25,9 +26,14 @@ export const copy = {
     hapticsHint: "A short buzz on right answers",
     calmLabel: "Calm motion",
     calmHint: "Less movement, same lessons",
+    darkLabel: "Dark mode",
+    darkHint: "Easier on eyes at night",
+    hinglishLabel: "Hinglish",
+    hinglishHint: "Mix of Hindi and English in lessons",
     savedLine: "Progress is saved on this phone.",
     understood: "Understood",
     ready: "Ready",
+    scoreLabel: "Test score",
   },
   lesson: {
     next: "Next",
@@ -44,7 +50,8 @@ export const copy = {
     stepOf: (current: number, total: number) => `Step ${current} of ${total}`,
   },
   test: {
-    questionOf: (current: number, total: number) => `Question ${current} of ${total}`,
+    questionOf: (current: number, total: number) =>
+      `Question ${current} of ${total}`,
     next: "Next",
     seeResult: "See result",
     close: "Leave the test",
@@ -55,8 +62,12 @@ export const copy = {
   },
   result: {
     scoreLine: (correct: number, total: number) => `You got ${correct} of ${total}.`,
-    needPerfect: "You need 5 of 5 to earn points.",
-    almost: "So close. You need 5 of 5 for points.",
+    needPass: "You need at least 4 of 5 to add this to your museum.",
+    almost: "So close. You need 4 of 5 to add this to your museum.",
+    effortLine: (points: number) =>
+      points === 1
+        ? "+1 Ken point for the answers you got right."
+        : `+${points} Ken points for the answers you got right.`,
     tryAgain: "Try again",
     watchLessonAgain: "Watch the lesson again",
     shuffleNote: "Each try shuffles the questions and answers.",
@@ -68,8 +79,11 @@ export const copy = {
       leaf: "You understand the leaf now.",
       heart: "You understand the heart now.",
     },
-    pointsLabel: "Kenpath Points",
+    pointsLabel: "Ken points",
     total: (points: number) => `${points} in total`,
+    discoveryLine: (n: number) => `+${n} for the discovery`,
+    streakLine: (n: number, day: number) => `+${n} day ${day} streak`,
+    revisitNote: "Revisit bonus for coming back today.",
     continue: "Continue",
     skipHint: "Tap to skip",
   },
@@ -106,18 +120,30 @@ export const copy = {
       "perfect-scholar": "Perfect Scholar",
       "streak-3": "3-Day Streak",
       "curious-mind": "Curious Mind",
+      "close-call": "Close Call",
+      "return-visitor": "Return Visitor",
     } satisfies Record<BadgeId, string>,
     newBadgeTitle: "New badge",
     descriptions: {
-      "first-discovery": "Pass your first test with 5 of 5.",
+      "first-discovery": "Pass your first test with at least 4 of 5.",
       "perfect-scholar": "Get 5 of 5 on the first try.",
       "streak-3": "Pass a test 3 days in a row.",
       "curious-mind": "Understand all 3 things.",
+      "close-call": "Score 3 of 5 on any test.",
+      "return-visitor": "Revisit a thing you already understand.",
     } satisfies Record<BadgeId, string>,
     earnedOn: (date: string) => `Earned ${date}`,
     notYet: "Not yet",
-    sheetTitle: "Your badges",
+    sheetTitle: "Points and badges",
     gotIt: "Nice",
+  },
+  wallet: {
+    heading: "Demo reward wallet",
+    unitsLabel: "Reward units",
+    unitsHint: (per: number) => `${per} points = 1 reward unit in this demo`,
+    unitsValue: (n: number) => `${n}`,
+    about:
+      "In a full Kenpath app, points can unlock real rewards after a server checks your score. This demo only saves points on your phone. It does not send rewards off the device.",
   },
   easterEggs: {
     fridgeDoor: "Shh. You are letting heat in.",
@@ -132,5 +158,6 @@ export const copy = {
     stepAnnounce: (stepIndex: number, stepTotal: number, title: string) =>
       `Step ${stepIndex} of ${stepTotal}. ${title}.`,
   },
-  catalogLine: (catalogNo: string, domainLabel: string) => `${catalogNo}, ${domainLabel}`,
+  catalogLine: (catalogNo: string, domainLabel: string) =>
+    `${catalogNo}, ${domainLabel}`,
 } as const;

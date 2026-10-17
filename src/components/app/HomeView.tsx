@@ -3,6 +3,7 @@
 import { BadgePin } from "@/components/app/BadgePin";
 import { BottomBar } from "@/components/app/BottomBar";
 import { Exhibit } from "@/components/app/Exhibit";
+import { ScoreFires } from "@/components/app/ScoreFires";
 import { PointsPill, StreakPill } from "@/components/app/StatusPills";
 import { HomeTopBar } from "@/components/app/TopBar";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ import { Check, ChevronRight, Lock } from "lucide-react";
 const BADGE_ORDER: BadgeId[] = [
   "first-discovery",
   "perfect-scholar",
+  "close-call",
+  "return-visitor",
   "streak-3",
   "curious-mind",
 ];
@@ -37,11 +40,16 @@ type HomeViewProps = {
   justCollected: DiscoveryId | null;
   onStart: (id: DiscoveryId) => void;
   onOpenBadges: () => void;
-  onSetting: (key: "haptics" | "calmMotion", value: boolean) => void;
+  onSetting: (
+    key: "haptics" | "calmMotion" | "darkMode" | "hinglish",
+    value: boolean,
+  ) => void;
 };
 
 type TileState =
-  { kind: "collected" } | { kind: "ready" } | { kind: "locked"; days: number };
+  | { kind: "collected"; score: number }
+  | { kind: "ready" }
+  | { kind: "locked"; days: number };
 
 export function HomeView({
   progress,
@@ -65,7 +73,8 @@ export function HomeView({
   const unseen = getUnseenBadges(progress).length > 0;
 
   const tileState = (d: Discovery): TileState => {
-    if (progress.collected[d.id]) return { kind: "collected" };
+    const entry = progress.collected[d.id];
+    if (entry) return { kind: "collected", score: entry.score ?? 4 };
     if (isDiscoveryUnlocked(d.day, unlockMax, isDemo)) return { kind: "ready" };
     return { kind: "locked", days: Math.max(1, getDaysUntilUnlock(d.day, dayIndex)) };
   };
@@ -100,6 +109,7 @@ export function HomeView({
         <ExhibitCard
           discovery={featured}
           collected={featuredDone}
+          score={progress.collected[featured.id]?.score}
           onStart={() => onStart(featured.id)}
         />
 
@@ -150,7 +160,7 @@ export function HomeView({
             type="button"
             onClick={onOpenBadges}
             className="pressable bg-surface ring-line mt-2 grid w-full grid-cols-4 gap-1 rounded-[22px] px-2 pt-4 pb-3.5 ring-1"
-            aria-label={`Badges: ${earned.size} of 4 earned. Open badges`}
+            aria-label={`Badges: ${earned.size} of ${BADGE_ORDER.length} earned. Open badges`}
           >
             {BADGE_ORDER.map((id) => (
               <span key={id} className="flex flex-col items-center gap-1.5">
@@ -188,6 +198,22 @@ export function HomeView({
               checked={progress.settings.calmMotion}
               onChange={(v) => onSetting("calmMotion", v)}
             />
+            <div className="border-line ml-4 border-t" />
+            <PreferenceRow
+              id="pref-dark"
+              label={copy.home.darkLabel}
+              hint={copy.home.darkHint}
+              checked={progress.settings.darkMode}
+              onChange={(v) => onSetting("darkMode", v)}
+            />
+            <div className="border-line ml-4 border-t" />
+            <PreferenceRow
+              id="pref-hinglish"
+              label={copy.home.hinglishLabel}
+              hint={copy.home.hinglishHint}
+              checked={progress.settings.hinglish}
+              onChange={(v) => onSetting("hinglish", v)}
+            />
           </div>
         </section>
 
@@ -208,10 +234,12 @@ export function HomeView({
 function ExhibitCard({
   discovery,
   collected,
+  score,
   onStart,
 }: {
   discovery: Discovery;
   collected: boolean;
+  score?: number;
   onStart: () => void;
 }) {
   const domain = copy.domains[discovery.domain];
@@ -277,6 +305,14 @@ function ExhibitCard({
             ? copy.home.collectedToday
             : copy.home.meta(discovery.steps.length, discovery.quiz.length)}
         </p>
+        {collected && typeof score === "number" ? (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-caption text-ink-soft font-semibold">
+              {copy.home.scoreLabel}
+            </span>
+            <ScoreFires score={score} size="sm" />
+          </div>
+        ) : null}
       </div>
     </article>
   );
@@ -363,11 +399,11 @@ function CollectionRow({
         )}
       </span>
       {state.kind === "collected" ? (
-        <span className="text-brass-ink inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold">
-          <span className="bg-brass-tint flex size-7 items-center justify-center rounded-full">
-            <Check className="size-4" strokeWidth={3} aria-hidden="true" />
+        <span className="inline-flex shrink-0 flex-col items-end gap-0.5">
+          <ScoreFires score={state.score} size="sm" />
+          <span className="sr-only">
+            {copy.home.understood}. {copy.home.scoreLabel}: {state.score} of 5
           </span>
-          <span className="sr-only">{copy.home.understood}</span>
         </span>
       ) : state.kind === "ready" ? (
         <span className="text-domain inline-flex shrink-0 items-center gap-0.5 text-[13px] font-semibold">

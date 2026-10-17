@@ -1,81 +1,122 @@
-# How Things Work
+Ref: KL-7Q4
 
-A daily illustrated museum in your pocket. Each day you discover one thing, watch it come apart and work, then pass a 5-question test with full marks to earn Kenpath Points and add it to your shelf.
+# Ken — become smarter every day
+
+Ken is a small daily learning web app built for the Kenpath Labs assessment. Each day you open one illustrated discovery (fridge, leaf, or heart), walk through a short guided lesson, then take a 5-question test. Score **at least 4 of 5** to earn Ken points, grow your streak, and add the object to your museum.
+
+The product is tuned for modest Android phones and mobile data: static HTML export, transform/opacity motion only, optional lite/calm modes, CSS + Web Audio celebration (no large media), and first-load size budgets.
 
 ## Live link
 
-Coming after deploy. (Ask before production.)
+> After deploy, paste the production URL here.
 
-## Requirements
+Deploy the `out/` folder from `npm run build` to any static host (Vercel, Netlify, Cloudflare Pages, or GitHub Pages). Prefer a free tier. Open the URL on a phone first.
 
-- Node.js 22+
-
-## Run locally
+## Quick start
 
 ```bash
-git clone <repo-url> kenpath-labs
-cd kenpath-labs
+git clone <this-repo-url>
+cd kenpath-labs-assesment
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
-### Static export preview
+Fresh installs ship a **showcase museum** so reviewers can see progress immediately:
 
-```bash
-npm run build
-npm run preview
+| Day | Discovery | State |
+| --- | --- | --- |
+| A−2 | Refrigerator | Done · fire score 5/5 |
+| A−1 | Leaf | Done · fire score 4/5 |
+| A (today) | Heart | Ready to start |
+
+To wipe the seed and start empty from day 1:
+
+```text
+http://127.0.0.1:3000/?fresh=1
 ```
 
-Opens at [http://localhost:4173](http://localhost:4173).
+To open any lesson without unlock rules (review only):
 
-## Testing
-
-```bash
-npm run test
-npx playwright install --with-deps
-npm run e2e
-npm run lhci
-npm run verify
+```text
+http://127.0.0.1:3000/?demo=1&view=lesson&d=leaf&step=1
 ```
 
-## Grader tip
+### Useful commands
 
-- Open `/?demo=1` to unlock all three discoveries for this browser session.
-- Open `/?demo=0` to turn demo mode off.
-- Reset progress by clearing site data for the origin.
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Local Next.js app |
+| `npm run build` | Static export into `out/` |
+| `npm run preview` | Serve `out/` on port 4173 |
+| `npm test` | Unit tests (Vitest) |
+| `npm run e2e` | Playwright on a low-end Android viewport |
+| `npm run budget` | First-load JS / font size budgets |
+| `npm run typecheck` | TypeScript |
+| `npm run lint` | ESLint |
 
-## Optional: Supabase sync
+### Environment
 
-The app works fully offline with localStorage. To enable optional anonymous sync and server-checked scoring, set:
+No API keys are required for the core app. Progress lives in `localStorage` under `kenpath-museum-v1`.
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+Optional (not required to run):
+
+- `NEXT_PUBLIC_SYNC=off` — keep scoring local (default for this build)
+
+Do **not** commit `.env*` files, local notes, or private docs. Those paths are gitignored.
+
+## What you will see
+
+1. **Home** — today’s discovery, Ken points, streak sprout, museum shelf with fire scores, badges, and preferences (haptics, calm motion, dark mode, Hinglish).
+2. **Lesson** — 11 illustrated steps per discovery. Focused parts stay in color; the rest go grayscale. Optional Hinglish copy for the same science in mixed Hindi–English.
+3. **Test** — 5 shuffled questions. Pass at **4 of 5**. Perfect (5/5) still earns the Perfect Scholar badge.
+4. **Result / reward** — fire marks for the score; on a pass, a short confetti burst + pop sounds (skipped on lite, calm, or reduced-motion devices). Demo reward units only — no real money wording.
+
+## Tech stack
+
+- **Next.js** (App Router, `output: "export"`) + **React 19**
+- **Tailwind CSS v4** design tokens (light + dark via `data-theme`)
+- **Base UI** for sheets/dialogs
+- **Vitest** + **Playwright**
+- No payment backend in this demo; Ken points map to demo “reward units” only
+
+## Project map
+
+```text
+src/
+  app/                 # page shell, CSS, boot script
+  art/                 # SVG lesson art (fridge, leaf, heart)
+  components/app/      # Home, Lesson, Test, Result, Reward
+  components/stage/    # camera, labels, swipe
+  content/             # lessons, quiz, copy, Hinglish map
+  hooks/               # progress, view, device flags
+  lib/                 # scoring, unlock, streak, storage, confetti
+tests/
+  unit/                # pure rules
+  e2e/                 # phone-sized flows
 ```
 
-SQL migrations live in `supabase/migrations/`. Run `npm run smoke:sync` after configuring env.
+### How the main features work
 
-## Folder map
-
-```
-src/app/           layout, page, globals
-src/components/    app, stage, scene, ui
-src/art/           fridge, leaf, heart SVG art
-src/content/       discoveries, copy, sources
-src/lib/           pure rules, storage, motion tokens
-tests/unit/        Vitest
-tests/e2e/         Playwright
-```
-
-## How to add a new discovery
-
-1. Add `src/content/<id>.ts` with steps and a 5-question quiz.
-2. Add `src/art/<id>/<Id>Art.tsx`.
-3. Register it in `src/content/index.ts`.
-4. Run `npm run test` (content lint tells you what is wrong).
+1. **Daily unlock** — `firstVisitDate` + calendar day decide `maxUnlockedDay`. Showcase seeds fridge and leaf so heart is today’s open exhibit. `?demo=1` unlocks all for review.
+2. **Lesson** — one route (`/`) with `?view=lesson&d=heart&step=3`. Parts stay mounted; steps only change opacity/camera. Non-focus parts go grayscale.
+3. **Test** — 5 questions, shuffled per attempt. **Pass ≥ 4**. Perfect is still 5/5 (badge).
+4. **Rewards** — first collect pays base + streak; imperfect attempts pay effort points; revisit pays a small daily bonus. Sheet shows demo reward units.
+5. **Low-end** — boot script sets `data-lite` / `data-calm`; confetti and loops skip when needed; fonts and JS are budget-checked (JS ≤ 200 KB gz, fonts ≤ 90 KB).
 
 ## AI tools used
 
-Cursor agent, design skills (`/emil-design-eng`, `/hallmark`, `/product-design`), Motion AI Kit guidance, and the build brief. Art and rules were reviewed by hand against the product brief.
+Cursor (Composer) was used for scaffolding, the lesson UI, scoring rules, Hinglish copy, dark mode, confetti, and this README. Human review for product rules (4/5 pass, showcase seed, Kenpath wording, no money/cash/earnings copy).
+
+## Explainer (short)
+
+**Built:** a daily museum loop with three discoveries, illustrated lessons (11 steps each), quizzes, points, streak sprout, badges, dark mode, Hinglish, and a demo reward wallet.
+
+**Choices:** static export for cheap hosting; local progress for zero backend; 4/5 pass line so near-misses still feel fair; fire marks for score readability; confetti via CSS + Web Audio (no large media).
+
+**Left out:** real payouts, server scoring, leaderboard, push notifications, and a full CMS for lessons. Those need a backend and careful anti-tamper design before any real reward.
+
+## License
+
+Private assessment submission. All rights reserved by the author unless Kenpath Labs states otherwise.

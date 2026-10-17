@@ -1,5 +1,6 @@
-import { X } from "lucide-react";
+import { copy } from "@/content/copy";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 import type { ReactNode } from "react";
 
 const bar =
@@ -13,9 +14,12 @@ export function HomeTopBar({ right }: HomeTopBarProps) {
       className={cn(bar, "pl-[max(20px,env(safe-area-inset-left))]")}
       style={{ viewTransitionName: "topbar" }}
     >
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
         <span className="font-display text-ink text-[20px] leading-none font-semibold tracking-[-0.02em] whitespace-nowrap">
-          How Things Work
+          {copy.app.wordmark}
+        </span>
+        <span className="text-caption text-ink-soft truncate leading-none">
+          {copy.app.tagline}
         </span>
       </div>
       <div className="flex items-center gap-2">{right}</div>

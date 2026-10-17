@@ -19,9 +19,9 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "How Things Work",
+  title: "Ken — become smarter every day",
   description:
-    "A daily illustrated museum in your pocket. See how a fridge, a leaf and your heart work, then prove it with a 5 of 5 test.",
+    "Ken is a daily illustrated museum. Learn how a fridge, a leaf and your heart work, then pass a short test for Ken points.",
 };
 
 export const viewport: Viewport = {

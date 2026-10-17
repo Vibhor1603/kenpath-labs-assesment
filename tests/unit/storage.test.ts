@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { createFreshProgress } from "@/lib/progress";
+import { createBlankProgress, createShowcaseProgress } from "@/lib/progress";
 import { createStorageAdapter, isProgressShape, parseProgress } from "@/lib/storage";
 
 describe("storage", () => {
-  it("corrupt JSON falls back to fresh state", () => {
+  it("corrupt JSON falls back to showcase seed", () => {
     const { progress, status } = parseProgress("{not json", "2026-10-17");
     expect(status).toBe("recovered");
-    expect(progress.firstVisitDate).toBe("2026-10-17");
+    expect(progress.collected.fridge).toBeTruthy();
   });
 
   it("wrong shape falls back", () => {
@@ -15,11 +15,15 @@ describe("storage", () => {
   });
 
   it("valid progress loads", () => {
-    const fresh = createFreshProgress("2026-10-17");
-    const { progress, status } = parseProgress(JSON.stringify(fresh), "2026-10-17");
+    const blank = createBlankProgress("2026-10-17");
+    const { progress, status } = parseProgress(JSON.stringify(blank), "2026-10-17");
     expect(status).toBe("loaded");
     expect(progress.points).toBe(0);
     expect(isProgressShape(progress)).toBe(true);
+  });
+
+  it("showcase shape validates", () => {
+    expect(isProgressShape(createShowcaseProgress("2026-10-17"))).toBe(true);
   });
 
   it("storage that throws falls back to memory without crashing", () => {

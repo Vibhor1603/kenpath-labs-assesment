@@ -1,6 +1,7 @@
 "use client";
 
 import { BottomBar } from "@/components/app/BottomBar";
+import { ScoreFires } from "@/components/app/ScoreFires";
 import { FlowTopBar } from "@/components/app/TopBar";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
@@ -12,6 +13,7 @@ import { useEffect, useRef } from "react";
 type ResultViewProps = {
   discovery: Discovery;
   results: boolean[];
+  pointsEarned: number;
   onRetry: () => void;
   onLesson: () => void;
   onClose: () => void;
@@ -20,6 +22,7 @@ type ResultViewProps = {
 export default function ResultView({
   discovery,
   results,
+  pointsEarned,
   onRetry,
   onLesson,
   onClose,
@@ -70,18 +73,29 @@ export default function ResultView({
             </li>
           ))}
         </ol>
-        <p
-          className="anim-rise-in tabular font-display text-hero mt-8 font-semibold"
+        <div
+          className="anim-rise-in mt-8 flex flex-col items-center gap-3"
           style={{ animationDelay: "420ms" }}
         >
-          {score} of {total}
-        </p>
+          <ScoreFires score={score} total={total} />
+          <p className="tabular font-display text-hero font-semibold">
+            {score} of {total}
+          </p>
+        </div>
         <p
           className="anim-rise-in text-body text-ink mt-3 max-w-[300px]"
           style={{ animationDelay: "500ms" }}
         >
-          {score === total - 1 ? copy.result.almost : copy.result.needPerfect}
+          {score === 3 ? copy.result.almost : copy.result.needPass}
         </p>
+        {pointsEarned > 0 ? (
+          <p
+            className="anim-rise-in text-small text-brass-ink mt-2 max-w-[300px] font-semibold"
+            style={{ animationDelay: "540ms" }}
+          >
+            {copy.result.effortLine(pointsEarned)}
+          </p>
+        ) : null}
         <p
           className="anim-rise-in text-small text-ink-soft mt-1.5 max-w-[300px]"
           style={{ animationDelay: "560ms" }}

@@ -1,10 +1,22 @@
 import type { BadgeId, DiscoveryId, Progress, TestOutcome } from "@/content/types";
+import { addDays } from "@/lib/date";
 import { getNewBadges } from "@/lib/badges";
-import { calculatePointsForPass, isPerfectScore } from "@/lib/scoring";
+import {
+  breakdownForCollect,
+  breakdownForEffort,
+  breakdownForRevisit,
+  calculateEffortPoints,
+  calculatePointsForPass,
+  calculateRevisitBonus,
+  emptyBreakdown,
+  isPassingScore,
+  isPerfectScore,
+} from "@/lib/scoring";
 import { getStreakAfterPass } from "@/lib/streak";
 import { getDayIndex, getNextMaxUnlockedDay } from "@/lib/unlock";
 
-export function createFreshProgress(todayKey: string): Progress {
+/** Empty museum (day 1, nothing collected). Used in unit tests. */
+export function createBlankProgress(todayKey: string): Progress {
   return {
     version: 1,
     firstVisitDate: todayKey,
@@ -13,11 +25,56 @@ export function createFreshProgress(todayKey: string): Progress {
     streak: { count: 0, lastPerfectDate: null },
     attempts: {},
     collected: {},
+    revisitClaimed: {},
     badges: [],
     seenBadges: [],
-    settings: { haptics: true, calmMotion: false },
+    settings: {
+      haptics: true,
+      calmMotion: false,
+      darkMode: false,
+      hinglish: false,
+    },
     introDismissed: false,
   };
+}
+
+/**
+ * Assessment showcase: fridge done two days ago, leaf yesterday, heart today.
+ * Fresh installs see a lived-in museum so reviewers can open Day A immediately.
+ */
+export function createShowcaseProgress(todayKey: string): Progress {
+  const dayAMinus2 = addDays(todayKey, -2);
+  const dayAMinus1 = addDays(todayKey, -1);
+  return {
+    version: 1,
+    firstVisitDate: dayAMinus2,
+    maxUnlockedDay: 3,
+    points: 550,
+    streak: { count: 2, lastPerfectDate: dayAMinus1 },
+    attempts: { fridge: 1, leaf: 1 },
+    collected: {
+      fridge: { perfectAt: dayAMinus2, firstTry: true, score: 5 },
+      leaf: { perfectAt: dayAMinus1, firstTry: true, score: 4 },
+    },
+    revisitClaimed: {},
+    badges: [
+      { id: "first-discovery", earnedAt: `${dayAMinus2}T10:00:00.000Z` },
+      { id: "perfect-scholar", earnedAt: `${dayAMinus2}T10:00:00.000Z` },
+    ],
+    seenBadges: ["first-discovery", "perfect-scholar"],
+    settings: {
+      haptics: true,
+      calmMotion: false,
+      darkMode: false,
+      hinglish: false,
+    },
+    introDismissed: true,
+  };
+}
+
+/** Default first paint for the Ken assessment build. */
+export function createFreshProgress(todayKey: string): Progress {
+  return createShowcaseProgress(todayKey);
 }
 
 export type ProgressAction =
@@ -30,7 +87,11 @@ export type ProgressAction =
       nowIso: string;
     }
   | { type: "markBadgesSeen"; badgeIds: BadgeId[] }
-  | { type: "setSetting"; key: "haptics" | "calmMotion"; value: boolean }
+  | {
+      type: "setSetting";
+      key: "haptics" | "calmMotion" | "darkMode" | "hinglish";
+      value: boolean;
+    }
   | { type: "dismissIntro" }
   | { type: "adoptSnapshot"; snapshot: Progress; todayKey: string };
 
@@ -47,13 +108,36 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
     case "finishTest": {
       const attemptNumber = (state.attempts[action.discoveryId] ?? 0) + 1;
       const attempts = { ...state.attempts, [action.discoveryId]: attemptNumber };
-      let next: Progress = { ...state, attempts };
+      const passing = isPassingScore(action.score);
+      let points = state.points;
+      let next: Progress = {
+        ...state,
+        attempts,
+        revisitClaimed: { ...state.revisitClaimed },
+      };
 
-      if (!isPerfectScore(action.score)) return next;
+      if (!passing) {
+        points += calculateEffortPoints(action.score);
+        next = { ...next, points };
+        const newBadges = getNewBadges(
+          next,
+          {
+            isPerfect: false,
+            isPassing: false,
+            attemptNumber,
+            score: action.score,
+            isRevisitBonus: false,
+          },
+          action.nowIso,
+        );
+        if (newBadges.length > 0) {
+          next = { ...next, badges: [...next.badges, ...newBadges] };
+        }
+        return next;
+      }
 
       const streak = getStreakAfterPass(state.streak, action.todayKey);
       const isFirstCollect = !state.collected[action.discoveryId];
-      let points = state.points;
       let collected = state.collected;
 
       if (isFirstCollect) {
@@ -66,14 +150,43 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
           [action.discoveryId]: {
             perfectAt: action.todayKey,
             firstTry: attemptNumber === 1,
+            score: action.score,
           },
         };
+      } else {
+        // Keep the best score on the placard.
+        const prev = state.collected[action.discoveryId]!;
+        collected = {
+          ...collected,
+          [action.discoveryId]: {
+            ...prev,
+            score: Math.max(prev.score ?? 0, action.score),
+          },
+        };
+      }
+
+      const revisit = calculateRevisitBonus({
+        alreadyCollected: !isFirstCollect,
+        isPassing: true,
+        lastClaimDate: state.revisitClaimed[action.discoveryId],
+        todayKey: action.todayKey,
+      });
+      const isRevisitBonus = revisit > 0;
+      if (isRevisitBonus) {
+        points += revisit;
+        next.revisitClaimed[action.discoveryId] = action.todayKey;
       }
 
       next = { ...next, streak, points, collected };
       const newBadges = getNewBadges(
         next,
-        { isPerfect: true, attemptNumber },
+        {
+          isPerfect: isPerfectScore(action.score),
+          isPassing: true,
+          attemptNumber,
+          score: action.score,
+          isRevisitBonus,
+        },
         action.nowIso,
       );
       if (newBadges.length > 0) {
@@ -95,10 +208,17 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
     case "adoptSnapshot": {
       const dayIndex = getDayIndex(action.snapshot.firstVisitDate, action.todayKey);
       const capped = Math.min(dayIndex, 3) as 1 | 2 | 3;
+      const settings = {
+        haptics: action.snapshot.settings?.haptics ?? true,
+        calmMotion: action.snapshot.settings?.calmMotion ?? false,
+        darkMode: action.snapshot.settings?.darkMode ?? false,
+        hinglish: action.snapshot.settings?.hinglish ?? false,
+      };
       return {
         ...action.snapshot,
+        revisitClaimed: action.snapshot.revisitClaimed ?? {},
+        settings,
         maxUnlockedDay: getNextMaxUnlockedDay(action.snapshot.maxUnlockedDay, capped),
-        settings: state.settings,
         introDismissed: state.introDismissed || action.snapshot.introDismissed,
         seenBadges: [
           ...new Set([...state.seenBadges, ...action.snapshot.badges.map((b) => b.id)]),
@@ -114,24 +234,37 @@ export function getTestOutcome(
   before: Progress,
   after: Progress,
   discoveryId: DiscoveryId,
+  score: number,
 ): TestOutcome {
   const attemptNumber = after.attempts[discoveryId] ?? 0;
   const wasCollected = Boolean(before.collected[discoveryId]);
   const isNowCollected = Boolean(after.collected[discoveryId]);
-  const perfect =
-    after.points > before.points ||
-    (isNowCollected && !wasCollected) ||
-    after.streak.lastPerfectDate !== before.streak.lastPerfectDate;
+  const isRevisit =
+    isPassingScore(score) &&
+    wasCollected &&
+    after.revisitClaimed[discoveryId] !== before.revisitClaimed[discoveryId];
 
-  const newBadges = after.badges.filter((b) => !before.badges.some((x) => x.id === b.id));
+  const isFirstCollect = isNowCollected && !wasCollected;
+  let breakdown = emptyBreakdown();
+  if (!isPassingScore(score)) {
+    breakdown = breakdownForEffort(score);
+  } else if (isFirstCollect) {
+    breakdown = breakdownForCollect(after.streak.count);
+  } else if (isRevisit) {
+    breakdown = breakdownForRevisit();
+  }
 
   return {
-    isPerfect: perfect,
+    isPerfect: isPerfectScore(score),
+    isPassing: isPassingScore(score),
     pointsEarned: after.points - before.points,
-    newBadges,
+    breakdown,
+    newBadges: after.badges.filter((b) => !before.badges.some((x) => x.id === b.id)),
     streakBefore: before.streak.count,
     streakAfter: after.streak.count,
-    isFirstCollect: isNowCollected && !wasCollected,
+    isFirstCollect,
     attemptNumber,
+    isRevisit,
+    score,
   };
 }

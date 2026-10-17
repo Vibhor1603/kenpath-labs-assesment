@@ -31,9 +31,13 @@ export const heart: Discovery = {
     {
       id: "heart-1",
       title: "Your heart is a pump",
-      body: "Your heart is a strong muscle about the size of your fist. It pushes blood around your body all day and night.",
-      more: "It beats on its own without you thinking about it.",
-      partFocus: ["wall-front", "loop-lungs", "loop-body"],
+      body: "Blood must keep moving through your body. Your heart is a strong muscle, about the size of your fist. It squeezes to push blood every day and night.",
+      beats: [
+        "It beats on its own. You do not have to think about it.",
+        "Next we look inside to see how one beat is built.",
+      ],
+      more: "At rest, many hearts beat about 60 to 100 times each minute.",
+      partFocus: ["wall-front"],
       labels: [
         {
           partId: "wall-front",
@@ -54,8 +58,12 @@ export const heart: Discovery = {
     {
       id: "heart-2",
       title: "Four rooms inside",
-      body: "Your heart has four rooms. The two top rooms (atria) collect blood. The two bottom rooms (ventricles) push it out.",
-      more: "A thick wall between the sides keeps the two loops separate.",
+      body: "Inside the heart there are four rooms. The two top rooms collect blood. The two bottom rooms push blood out with more force.",
+      beats: [
+        "A thick wall keeps the right side and left side apart.",
+        "First the top fills. Then the bottom pushes.",
+      ],
+      more: "That wall is called the septum. It stops the two blood trips from mixing the wrong way.",
       partFocus: [
         "atrium-right",
         "atrium-left",
@@ -67,13 +75,13 @@ export const heart: Discovery = {
       labels: [
         {
           partId: "atrium-right",
-          text: "Atria collect",
+          text: "Top rooms",
           anchor: { x: 136, y: 250 },
           side: "top",
         },
         {
           partId: "ventricle-left",
-          text: "Ventricles push",
+          text: "Bottom rooms",
           anchor: { x: 262, y: 364 },
           side: "bottom",
         },
@@ -83,14 +91,87 @@ export const heart: Discovery = {
     },
     {
       id: "heart-3",
-      title: "Doors that open one way",
-      body: 'Valves are like one-way doors. They stop blood from flowing back. Their closing makes the "lub-dub" sound.',
-      more: "Each beat opens and closes four valves in a set order.",
-      partFocus: ["valve-tricuspid", "valve-mitral", "valve-pulmonary", "valve-aortic"],
+      title: "Top rooms fill first",
+      body: "First the two top rooms fill. They are called atria. Blood returns from the body and from the lungs and rests here for a moment.",
+      beats: [
+        "The atria have thinner walls.",
+        "Their job is to gather blood, then send it down.",
+      ],
+      more: "Right atrium gets blood from the body. Left atrium gets blood from the lungs.",
+      partFocus: ["atrium-right", "atrium-left"],
+      labels: [
+        {
+          partId: "atrium-right",
+          text: "Right atrium",
+          anchor: { x: 136, y: 250 },
+          side: "left",
+        },
+        {
+          partId: "atrium-left",
+          text: "Left atrium",
+          anchor: { x: 280, y: 250 },
+          side: "right",
+        },
+      ],
+      pose: {
+        "wall-front": { opacity: 0.08 },
+        "ventricle-right": { opacity: 0.35 },
+        "ventricle-left": { opacity: 0.35 },
+        septum: { opacity: 0.4 },
+      },
+      camera: { x: 210, y: 260, scale: 1.55 },
+    },
+    {
+      id: "heart-4",
+      title: "Bottom rooms push out",
+      body: "Then the two bottom rooms squeeze. They are called ventricles. Strong walls push blood out of the heart toward the lungs or the body.",
+      beats: [
+        "The left ventricle is the strongest room.",
+        "It must send blood all the way around the body.",
+      ],
+      more: "You can feel a pulse in your wrist when a ventricle pushes blood into your arteries.",
+      partFocus: ["ventricle-right", "ventricle-left"],
+      labels: [
+        {
+          partId: "ventricle-right",
+          text: "Right ventricle",
+          anchor: { x: 140, y: 360 },
+          side: "left",
+        },
+        {
+          partId: "ventricle-left",
+          text: "Left ventricle",
+          anchor: { x: 280, y: 360 },
+          side: "right",
+        },
+      ],
+      pose: {
+        "wall-front": { opacity: 0.08 },
+        "atrium-right": { opacity: 0.35 },
+        "atrium-left": { opacity: 0.35 },
+        septum: { opacity: 0.4 },
+      },
+      camera: { x: 210, y: 340, scale: 1.55 },
+    },
+    {
+      id: "heart-5",
+      title: "Valves keep one way",
+      body: "Between the rooms are valves. They work like one-way doors. Blood can go forward, but not back. When valves shut, you hear lub-dub.",
+      beats: [
+        "Without valves, blood would slip backward.",
+        "Each beat opens and closes four valves in order.",
+      ],
+      more: "Doctors listen to those sounds with a stethoscope to check how valves are working.",
+      partFocus: [
+        "valve-tricuspid",
+        "valve-mitral",
+        "valve-pulmonary",
+        "valve-aortic",
+      ],
       labels: [
         {
           partId: "valve-mitral",
-          text: "One-way valve",
+          text: "One-way door",
           anchor: { x: 266, y: 318 },
           side: "right",
         },
@@ -105,18 +186,51 @@ export const heart: Discovery = {
       camera: { x: 206, y: 290, scale: 1.6 },
     },
     {
-      id: "heart-4",
-      title: "Two loops, every beat",
-      body: "The right side sends blood to the lungs to pick up oxygen. The left side sends that blood to the whole body.",
-      more: "Fresh oxygen in the lungs turns the blood bright red for the body loop.",
-      partFocus: [
-        "loop-lungs",
-        "loop-body",
-        "lungs-outline",
-        "body-outline",
-        "flow-lungs",
-        "flow-body",
+      id: "heart-6",
+      title: "Right side to lungs",
+      body: "On the right side, the heart sends blood to the lungs. In the lungs the blood picks up fresh oxygen. Then it comes back to the left side.",
+      beats: [
+        "This short trip is the lung loop.",
+        "Oxygen is what the body needs next.",
       ],
+      more: "Blood going to the lungs has less oxygen. Blood coming back has more.",
+      partFocus: ["loop-lungs", "lungs-outline", "flow-lungs", "ventricle-right"],
+      labels: [
+        {
+          partId: "loop-lungs",
+          text: "To the lungs",
+          anchor: { x: 100, y: 58 },
+          side: "left",
+        },
+        {
+          partId: "ventricle-right",
+          text: "Right push",
+          anchor: { x: 140, y: 360 },
+          side: "bottom",
+        },
+      ],
+      pose: {
+        "wall-front": { opacity: 0.08 },
+        "atrium-right": { opacity: 0.55 },
+        "ventricle-right": { opacity: 0.85 },
+        "atrium-left": { opacity: 0.3 },
+        "ventricle-left": { opacity: 0.3 },
+        septum: { opacity: 0.45 },
+        "lungs-outline": { opacity: 1 },
+        "flow-lungs": { opacity: 1 },
+      },
+      camera: { x: 190, y: 220, scale: 0.95 },
+    },
+    {
+      id: "heart-7",
+      title: "Left side to body",
+      body: "On the left side, the heart sends oxygen-rich blood out to the whole body. Both loops finish on every single beat: lungs, then body.",
+      beats: [
+        "Full path: fill, push, one-way valves, lungs, then body.",
+        "We color low-oxygen blood purple only to tell the loops apart. Real blood is always red.",
+      ],
+      more: "When the left side pushes, you feel that beat as your pulse.",
+      partFocus: [],
       labels: [
         {
           partId: "loop-lungs",
@@ -145,12 +259,150 @@ export const heart: Discovery = {
       },
       camera: { x: 190, y: 240, scale: 0.86 },
     },
+    {
+      id: "heart-8",
+      title: "Blood carries cargo",
+      body: "Blood is more than a red liquid. Red cells carry oxygen while plasma carries food, salts, and waste. White cells help fight germs, and the heart keeps that cargo moving.",
+      beats: [
+        "Pumping only matters because blood carries what cells need.",
+        "If flow slows, tissues starve for oxygen and food.",
+      ],
+      more: "About half of blood is cells. The rest is watery plasma.",
+      partFocus: ["flow-body", "loop-body"],
+      labels: [
+        {
+          partId: "flow-body",
+          text: "Oxygen cargo",
+          anchor: { x: 160, y: 420 },
+          side: "left",
+        },
+        {
+          partId: "loop-body",
+          text: "Body delivery",
+          anchor: { x: 132, y: 490 },
+          side: "top",
+        },
+      ],
+      pose: {
+        "wall-front": { opacity: 0.08 },
+        "flow-body": { opacity: 1 },
+        "body-outline": { opacity: 1 },
+        "ventricle-left": { opacity: 0.8 },
+      },
+      camera: { x: 190, y: 280, scale: 0.95 },
+    },
+    {
+      id: "heart-9",
+      title: "Pulse is a wave",
+      body: "Each left ventricle squeeze sends a pressure wave through arteries. You feel that wave as a pulse at your wrist or neck. Counting it estimates how often the heart beats.",
+      beats: [
+        "A faster pulse means more beats each minute.",
+        "Exercise raises pulse because muscles need more oxygen.",
+      ],
+      more: "Doctors also listen with a stethoscope for the valve sounds.",
+      partFocus: ["ventricle-left", "loop-body"],
+      labels: [
+        {
+          partId: "ventricle-left",
+          text: "Strong push",
+          anchor: { x: 250, y: 360 },
+          side: "bottom",
+        },
+        {
+          partId: "loop-body",
+          text: "Pulse wave",
+          anchor: { x: 132, y: 490 },
+          side: "top",
+        },
+      ],
+      pose: {
+        "wall-front": { opacity: 0.08 },
+        "ventricle-left": { opacity: 1 },
+        "flow-body": { opacity: 1 },
+      },
+      camera: { x: 210, y: 300, scale: 1.2 },
+    },
+    {
+      id: "heart-10",
+      title: "Two loops one beat",
+      body: "Think of two pumps stuck together. The right pump fills the lungs. The left pump fills the body. They squeeze in the same rhythm so both loops finish together.",
+      beats: [
+        "One heartbeat serves lungs and body at once.",
+        "Septum keeps the two sides from mixing blood the wrong way.",
+      ],
+      more: "That dual loop design is why large animals can stay active.",
+      partFocus: ["septum", "flow-lungs", "flow-body"],
+      labels: [
+        {
+          partId: "septum",
+          text: "Middle wall",
+          anchor: { x: 200, y: 300 },
+          side: "top",
+        },
+        {
+          partId: "flow-lungs",
+          text: "Lung loop",
+          anchor: { x: 100, y: 100 },
+          side: "right",
+        },
+      ],
+      pose: {
+        "wall-front": { opacity: 0.08 },
+        septum: { opacity: 1 },
+        "flow-lungs": { opacity: 1 },
+        "flow-body": { opacity: 1 },
+        "lungs-outline": { opacity: 0.8 },
+        "body-outline": { opacity: 0.8 },
+      },
+      camera: { x: 190, y: 240, scale: 0.9 },
+    },
+    {
+      id: "heart-11",
+      title: "Your daily pump",
+      body: "Put it together: four rooms, one-way valves, lung loop, body loop. Your heart is a tireless muscle pump that moves oxygen and food to every living cell.",
+      beats: [
+        "That is why a strong steady beat keeps you alive and moving.",
+        "You now know the logic behind lub-dub and your pulse.",
+      ],
+      more: "Rest, sleep, and activity all change how hard the pump works.",
+      partFocus: [],
+      labels: [
+        {
+          partId: "wall-front",
+          text: "Muscle pump",
+          anchor: { x: 150, y: 352 },
+          side: "left",
+        },
+        {
+          partId: "loop-body",
+          text: "To the body",
+          anchor: { x: 132, y: 490 },
+          side: "top",
+        },
+      ],
+      pose: {
+        "wall-front": { opacity: 0.15 },
+        "atrium-right": { opacity: 0.7 },
+        "atrium-left": { opacity: 0.7 },
+        "ventricle-right": { opacity: 0.7 },
+        "ventricle-left": { opacity: 0.7 },
+        septum: { opacity: 0.7 },
+        "flow-lungs": { opacity: 1 },
+        "flow-body": { opacity: 1 },
+      },
+      camera: { x: 190, y: 240, scale: 0.86 },
+    },
   ],
   quiz: [
     {
       id: "heart-q1",
       q: "What is your heart?",
-      options: ["A muscle that pumps blood", "A bone", "A bag of air", "A kind of lung"],
+      options: [
+        "A muscle that pumps blood",
+        "A bone",
+        "A bag of air",
+        "A kind of lung",
+      ],
       answer: 0,
       why: "The heart is a muscle. It squeezes to push blood.",
     },
@@ -188,7 +440,12 @@ export const heart: Discovery = {
     {
       id: "heart-q5",
       q: "What makes the lub-dub sound?",
-      options: ["Valves closing", "Blood boiling", "Lungs breathing", "Bones moving"],
+      options: [
+        "Valves closing",
+        "Blood boiling",
+        "Lungs breathing",
+        "Bones moving",
+      ],
       answer: 0,
       why: "Each sound is a set of valves shutting.",
     },

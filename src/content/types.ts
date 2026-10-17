@@ -1,6 +1,12 @@
 export type DiscoveryId = "fridge" | "leaf" | "heart";
 export type DayNumber = 1 | 2 | 3;
-export type BadgeId = "first-discovery" | "perfect-scholar" | "streak-3" | "curious-mind";
+export type BadgeId =
+  | "first-discovery"
+  | "perfect-scholar"
+  | "streak-3"
+  | "curious-mind"
+  | "close-call"
+  | "return-visitor";
 
 export type Label = {
   partId: string;
@@ -23,11 +29,23 @@ export type PartPose = {
 /** Where the stage camera looks for a step, in art (viewBox) coordinates. */
 export type Camera = { x: number; y: number; scale: number };
 
+export type StepLocale = {
+  title: string;
+  body: string;
+  beats?: string[];
+  more?: string;
+};
+
 export type Step = {
   id: string;
   title: string;
+  /** Plain explanation. Prefer short clear sentences over clever phrases. */
   body: string;
+  /** Optional short lines under the body (what happens / what to notice). */
+  beats?: string[];
   more?: string;
+  /** Hinglish alternate for ESL readers (same science, mixed Hindi-English). */
+  hinglish?: StepLocale;
   partFocus: string[];
   labels: Label[];
   pose: Record<string, PartPose>;
@@ -62,6 +80,8 @@ export type Streak = {
 export type CollectedEntry = {
   perfectAt: string;
   firstTry: boolean;
+  /** Best quiz score (0-5) for this discovery. Shown as fire marks. */
+  score: number;
 };
 
 export type Badge = {
@@ -77,9 +97,16 @@ export type Progress = {
   streak: Streak;
   attempts: Partial<Record<DiscoveryId, number>>;
   collected: Partial<Record<DiscoveryId, CollectedEntry>>;
+  /** Local date key of the last revisit bonus claimed per discovery. */
+  revisitClaimed: Partial<Record<DiscoveryId, string>>;
   badges: Badge[];
   seenBadges: BadgeId[];
-  settings: { haptics: boolean; calmMotion: boolean };
+  settings: {
+    haptics: boolean;
+    calmMotion: boolean;
+    darkMode: boolean;
+    hinglish: boolean;
+  };
   introDismissed: boolean;
 };
 
@@ -92,14 +119,27 @@ export type ShuffledQuestion = {
   originalOptionIndexes: number[];
 };
 
+export type PointsBreakdown = {
+  discovery: number;
+  streak: number;
+  effort: number;
+  revisit: number;
+};
+
 export type TestOutcome = {
   isPerfect: boolean;
+  /** True when score is at least PASS_SCORE (4 of 5). */
+  isPassing: boolean;
   pointsEarned: number;
+  breakdown: PointsBreakdown;
   newBadges: Badge[];
   streakBefore: number;
   streakAfter: number;
   isFirstCollect: boolean;
   attemptNumber: number;
+  /** Passing revisit of an already collected exhibit (day bonus). */
+  isRevisit: boolean;
+  score: number;
 };
 
 /** Props for the small exterior art used on Home, the collection and the reward. */

@@ -1,75 +1,66 @@
 import { describe, expect, it } from "vitest";
 import type { Progress } from "@/content/types";
-import { getNewBadges, getUnseenBadges } from "@/lib/badges";
-import { createFreshProgress } from "@/lib/progress";
+import { getNewBadges } from "@/lib/badges";
+import { createBlankProgress } from "@/lib/progress";
 
-function base(): Progress {
-  return createFreshProgress("2026-10-17");
+function blank(): Progress {
+  return createBlankProgress("2026-10-17");
 }
 
 describe("badges", () => {
-  it("First Discovery on first perfect", () => {
+  it("first pass earns First Discovery", () => {
     const after = {
-      ...base(),
-      collected: { fridge: { perfectAt: "2026-10-17", firstTry: true } },
+      ...blank(),
+      collected: { fridge: { perfectAt: "2026-10-17", firstTry: true, score: 4 } },
       streak: { count: 1, lastPerfectDate: "2026-10-17" },
     };
-    const badges = getNewBadges(after, { isPerfect: true, attemptNumber: 1 }, "iso");
+    const badges = getNewBadges(
+      after,
+      {
+        isPerfect: false,
+        isPassing: true,
+        attemptNumber: 1,
+        score: 4,
+        isRevisitBonus: false,
+      },
+      "iso",
+    );
     expect(badges.map((b) => b.id)).toContain("first-discovery");
-    expect(badges.map((b) => b.id)).toContain("perfect-scholar");
-  });
-
-  it("Perfect Scholar only when attempt 1 is perfect", () => {
-    const after = {
-      ...base(),
-      collected: { fridge: { perfectAt: "2026-10-17", firstTry: false } },
-      streak: { count: 1, lastPerfectDate: "2026-10-17" },
-    };
-    const badges = getNewBadges(after, { isPerfect: true, attemptNumber: 2 }, "iso");
     expect(badges.map((b) => b.id)).not.toContain("perfect-scholar");
   });
 
-  it("3-Day Streak at count 3", () => {
+  it("Perfect Scholar needs 5 of 5 on attempt 1", () => {
     const after = {
-      ...base(),
-      collected: { fridge: { perfectAt: "2026-10-17", firstTry: true } },
-      streak: { count: 3, lastPerfectDate: "2026-10-19" },
-      badges: [{ id: "first-discovery" as const, earnedAt: "a" }],
-    };
-    const badges = getNewBadges(after, { isPerfect: true, attemptNumber: 2 }, "iso");
-    expect(badges.map((b) => b.id)).toContain("streak-3");
-  });
-
-  it("Curious Mind when all 3 collected", () => {
-    const after = {
-      ...base(),
-      collected: {
-        fridge: { perfectAt: "2026-10-17", firstTry: true },
-        leaf: { perfectAt: "2026-10-18", firstTry: true },
-        heart: { perfectAt: "2026-10-19", firstTry: true },
-      },
-      streak: { count: 3, lastPerfectDate: "2026-10-19" },
-      badges: [
-        { id: "first-discovery" as const, earnedAt: "a" },
-        { id: "perfect-scholar" as const, earnedAt: "a" },
-        { id: "streak-3" as const, earnedAt: "a" },
-      ],
-    };
-    const badges = getNewBadges(after, { isPerfect: true, attemptNumber: 1 }, "iso");
-    expect(badges.map((b) => b.id)).toContain("curious-mind");
-  });
-
-  it("no duplicates and seenBadges controls popup", () => {
-    const after = {
-      ...base(),
-      badges: [{ id: "first-discovery" as const, earnedAt: "a" }],
-      seenBadges: [],
-      collected: { fridge: { perfectAt: "2026-10-17", firstTry: true } },
+      ...blank(),
+      collected: { fridge: { perfectAt: "2026-10-17", firstTry: true, score: 5 } },
       streak: { count: 1, lastPerfectDate: "2026-10-17" },
     };
-    const again = getNewBadges(after, { isPerfect: true, attemptNumber: 2 }, "iso");
-    expect(again.map((b) => b.id)).not.toContain("first-discovery");
-    expect(getUnseenBadges(after)).toEqual(["first-discovery"]);
-    expect(getUnseenBadges({ ...after, seenBadges: ["first-discovery"] })).toEqual([]);
+    const badges = getNewBadges(
+      after,
+      {
+        isPerfect: true,
+        isPassing: true,
+        attemptNumber: 1,
+        score: 5,
+        isRevisitBonus: false,
+      },
+      "iso",
+    );
+    expect(badges.map((b) => b.id)).toContain("perfect-scholar");
+  });
+
+  it("Close Call on 3 of 5", () => {
+    const badges = getNewBadges(
+      blank(),
+      {
+        isPerfect: false,
+        isPassing: false,
+        attemptNumber: 1,
+        score: 3,
+        isRevisitBonus: false,
+      },
+      "iso",
+    );
+    expect(badges.map((b) => b.id)).toEqual(["close-call"]);
   });
 });

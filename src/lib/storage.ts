@@ -69,12 +69,24 @@ export function parseProgress(
     if (!isProgressShape(parsed)) {
       return { progress: createFreshProgress(todayKey), status: "recovered" };
     }
+    const rawSettings = (parsed as Progress).settings;
+    const collected = { ...(parsed as Progress).collected };
+    for (const id of Object.keys(collected) as (keyof typeof collected)[]) {
+      const entry = collected[id];
+      if (entry && typeof entry.score !== "number") {
+        collected[id] = { ...entry, score: 5 };
+      }
+    }
     const progress: Progress = {
       ...parsed,
+      collected,
+      revisitClaimed: (parsed as Progress).revisitClaimed ?? {},
       introDismissed: Boolean((parsed as Progress).introDismissed ?? false),
       settings: {
-        haptics: parsed.settings?.haptics ?? true,
-        calmMotion: parsed.settings?.calmMotion ?? false,
+        haptics: rawSettings?.haptics ?? true,
+        calmMotion: rawSettings?.calmMotion ?? false,
+        darkMode: rawSettings?.darkMode ?? false,
+        hinglish: rawSettings?.hinglish ?? false,
       },
     };
     return { progress, status: "loaded" };

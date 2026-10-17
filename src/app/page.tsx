@@ -60,6 +60,12 @@ export default function Page() {
   const flags = useDeviceFlags(progress.settings.calmMotion);
   useOnlineToast();
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (progress.settings.darkMode) root.setAttribute("data-theme", "dark");
+    else root.removeAttribute("data-theme");
+  }, [progress.settings.darkMode]);
+
   const todayKey = toDateKey(new Date());
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
@@ -164,6 +170,7 @@ export default function Page() {
             reduced={flags.calm}
             lite={flags.lite}
             visible={flags.visible}
+            hinglish={progress.settings.hinglish}
             onStep={(step) => replace({ name: "lesson", discoveryId: active.id, step })}
             onClose={goHome}
             onTest={() => {
@@ -187,7 +194,7 @@ export default function Page() {
               if (!attempt) return;
               go(() =>
                 replace({
-                  name: attempt.outcome.isPerfect ? "reward" : "result",
+                  name: attempt.outcome.isPassing ? "reward" : "result",
                   discoveryId: active.id,
                 }),
               );
@@ -200,6 +207,7 @@ export default function Page() {
           <ResultView
             discovery={active}
             results={attempt.results}
+            pointsEarned={attempt.outcome.pointsEarned}
             onRetry={() => {
               setTestKey((k) => k + 1);
               go(() => replace({ name: "test", discoveryId: active.id }));

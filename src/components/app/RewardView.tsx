@@ -6,7 +6,9 @@ import { Sprout } from "@/components/app/Sprout";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
 import type { Discovery, TestOutcome } from "@/content/types";
+import { ScoreFires } from "@/components/app/ScoreFires";
 import { useCountUp } from "@/hooks/useCountUp";
+import { burstConfetti, playPopBursts, shouldCelebrate } from "@/lib/confetti";
 import { vibrateReward } from "@/lib/haptics";
 import { reward } from "@/lib/motion";
 import { Check } from "lucide-react";
@@ -55,6 +57,7 @@ export default function RewardView({
   const badgeFired = useRef(false);
   const onBadgeMomentRef = useRef(onBadgeMoment);
   const continueRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const pointsRef = useCountUp<HTMLSpanElement>(outcome.pointsEarned, {
     delayMs: reward.countAtMs,
     durationMs: reward.countMs,
@@ -65,7 +68,12 @@ export default function RewardView({
   useEffect(() => {
     vibrateReward(haptics);
     continueRef.current?.focus({ preventScroll: true });
-  }, [haptics]);
+    if (!shouldCelebrate({ calm, lite })) return;
+    const host = rootRef.current;
+    if (!host) return;
+    burstConfetti(host, lite);
+    playPopBursts(lite ? 3 : 6);
+  }, [haptics, calm, lite]);
 
   useEffect(() => {
     onBadgeMomentRef.current = onBadgeMoment;
@@ -97,6 +105,7 @@ export default function RewardView({
 
   return (
     <div
+      ref={rootRef}
       className="relative flex min-h-0 flex-1 flex-col"
       data-domain={discovery.domain}
       data-skip={skipped ? "" : undefined}
@@ -184,6 +193,9 @@ export default function RewardView({
         >
           {copy.reward.understand[discovery.id]}
         </h1>
+        <div className="anim-rise-in mt-3" style={{ animationDelay: "560ms" }}>
+          <ScoreFires score={outcome.score} />
+        </div>
 
         {outcome.pointsEarned > 0 ? (
           <div
@@ -199,6 +211,24 @@ export default function RewardView({
             <span className="text-caption text-ink-soft mt-1 font-semibold tracking-[0.06em] uppercase">
               {copy.reward.pointsLabel} · {copy.reward.total(totalPoints)}
             </span>
+            {outcome.breakdown.discovery > 0 || outcome.breakdown.streak > 0 ? (
+              <ul className="text-small text-ink-soft mt-2.5 space-y-0.5 text-center">
+                {outcome.breakdown.discovery > 0 ? (
+                  <li>{copy.reward.discoveryLine(outcome.breakdown.discovery)}</li>
+                ) : null}
+                {outcome.breakdown.streak > 0 ? (
+                  <li>
+                    {copy.reward.streakLine(
+                      outcome.breakdown.streak,
+                      outcome.streakAfter,
+                    )}
+                  </li>
+                ) : null}
+              </ul>
+            ) : null}
+            {outcome.isRevisit ? (
+              <span className="text-caption text-ink-soft mt-1.5">{copy.reward.revisitNote}</span>
+            ) : null}
           </div>
         ) : null}
 

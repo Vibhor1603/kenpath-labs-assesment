@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { discoveries } from "@/content";
 import type { Progress } from "@/content/types";
-import { createFreshProgress } from "@/lib/progress";
+import { createBlankProgress } from "@/lib/progress";
 import {
   getDayIndex,
   getNextMaxUnlockedDay,
@@ -12,7 +12,7 @@ import {
 function withCollected(p: Progress, ids: ("fridge" | "leaf" | "heart")[]): Progress {
   const collected = { ...p.collected };
   for (const id of ids) {
-    collected[id] = { perfectAt: p.firstVisitDate, firstTry: true };
+    collected[id] = { perfectAt: p.firstVisitDate, firstTry: true, score: 5 };
   }
   return { ...p, collected };
 }
@@ -45,7 +45,7 @@ describe("unlock", () => {
   });
 
   it("todays discovery follows rules including all collected", () => {
-    let p = createFreshProgress("2026-10-17");
+    let p = createBlankProgress("2026-10-17");
     p = { ...p, maxUnlockedDay: 3 };
     const day1 = getTodaysDiscoveryForDate(discoveries, p, "2026-10-17", false);
     expect(day1.discovery.id).toBe("fridge");

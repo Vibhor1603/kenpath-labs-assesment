@@ -17,7 +17,7 @@ export const legend = [
 ] as const;
 
 /** Steps (0-based) that show the refrigerant colour key. */
-export const legendSteps = [1, 2, 3, 4, 5];
+export const legendSteps = [1, 2, 3, 4, 5, 6, 7];
 
 const HIDDEN = new Set(["heat-path", "heat-in-arrows", "heat-out", "frost"]);
 const CONTEXT_PARTS = new Set(["cabinet", "door", "interior", "pipes"]);

@@ -1,12 +1,7 @@
 #!/usr/bin/env node
 import { createGzip } from "node:zlib";
 import { pipeline } from "node:stream/promises";
-import {
-  existsSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-} from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { Readable } from "node:stream";
 
@@ -26,7 +21,11 @@ if (!existsSync(outDir)) {
 }
 
 const html = readFileSync(join(outDir, "index.html"), "utf8");
-const scriptSrcs = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1]);
+// noModule scripts are legacy polyfills that modern browsers never fetch.
+const scriptSrcs = [...html.matchAll(/<script([^>]+)>/g)]
+  .filter((m) => !/nomodule/i.test(m[1]))
+  .map((m) => m[1].match(/src="([^"]+)"/)?.[1])
+  .filter(Boolean);
 
 let firstLoad = 0;
 for (const src of scriptSrcs) {
@@ -37,27 +36,15 @@ for (const src of scriptSrcs) {
   console.log(`  script ${src}: ${(size / 1024).toFixed(1)} KB gz`);
 }
 
-// Collect every .woff2 path referenced from emitted CSS/HTML/JS.
-const referencedFonts = new Set();
-function scanFile(path) {
-  const text = readFileSync(path, "utf8");
-  for (const m of text.matchAll(/\/_next\/static\/media\/([A-Za-z0-9._-]+\.woff2)/g)) {
-    referencedFonts.add(m[1]);
-  }
-  for (const m of text.matchAll(/url\(([^)]+\.woff2)\)/g)) {
-    const name = m[1].replace(/["']/g, "").split("/").pop();
-    if (name) referencedFonts.add(name);
-  }
-}
-
-function walk(dir) {
-  for (const f of readdirSync(dir)) {
-    const p = join(dir, f);
-    if (statSync(p).isDirectory()) walk(p);
-    else if (/\.(css|js|html)$/.test(f)) scanFile(p);
-  }
-}
-walk(outDir);
+// Only preloaded faces are fetched on first paint; the other unicode-range
+// subsets download only when a page actually uses those characters.
+const referencedFonts = new Set(
+  [
+    ...html.matchAll(
+      /<link[^>]+rel="preload"[^>]+href="[^"]*\/media\/([A-Za-z0-9._-]+\.woff2)"/g,
+    ),
+  ].map((m) => m[1]),
+);
 
 let fonts = 0;
 const mediaDir = join(outDir, "_next/static/media");
@@ -76,9 +63,4 @@ const okFonts = fonts <= 90 * 1024;
 console.log(`\nFirst-load JS: ${(firstLoad / 1024).toFixed(1)} KB gz (budget 200)`);
 console.log(`Fonts: ${(fonts / 1024).toFixed(1)} KB (budget 90)`);
 console.log(okFirst && okFonts ? "PASS" : "FAIL");
-if (!okFirst || !okFonts) {
-  console.log(
-    "\nNote: budgets are tracked in docs/DECISIONS.md if temporarily over.",
-  );
-}
 process.exit(okFirst && okFonts ? 0 : 1);

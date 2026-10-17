@@ -1,25 +1,18 @@
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
+import { getDiscovery } from "../../src/content/index";
+import type { DiscoveryId } from "../../src/content/types";
+import { buildQuizAttempt } from "../../src/lib/shuffle";
 
 export const test = base.extend({
   page: async ({ page }, use) => {
     page.on("pageerror", (err) => {
-      const msg = err.message;
-      // Hydration mismatches from boot-script data-* attrs; still under fix.
-      if (msg.includes("Minified React error #418")) return;
-      if (msg.includes("Minified React error #423")) return;
-      if (msg.includes("Hydration")) return;
-      throw new Error(`pageerror: ${msg}`);
+      throw new Error(`pageerror: ${err.message}`);
     });
     page.on("console", (msg) => {
-      if (msg.type() === "error") {
-        const text = msg.text();
-        // Ignore known Next/React noise and missing static assets in preview
-        if (text.includes("Download the React DevTools")) return;
-        if (text.includes("hydration")) return;
-        if (text.includes("Failed to load resource")) return;
-        if (text.includes("favicon")) return;
-        throw new Error(`console.error: ${text}`);
-      }
+      if (msg.type() !== "error") return;
+      const text = msg.text();
+      if (text.includes("Download the React DevTools")) return;
+      throw new Error(`console.error: ${text}`);
     });
     // Clear storage once before the first document loads, not on every navigation.
     await page.addInitScript(() => {
@@ -37,5 +30,32 @@ export const test = base.extend({
     await use(page);
   },
 });
+
+export function correctAnswers(id: DiscoveryId, attempt: number): string[] {
+  return buildQuizAttempt(getDiscovery(id)!, attempt).map((q) => q.options[q.answer]);
+}
+
+export function wrongAnswers(id: DiscoveryId, attempt: number): string[] {
+  return buildQuizAttempt(getDiscovery(id)!, attempt).map(
+    (q) => q.options[(q.answer + 1) % q.options.length],
+  );
+}
+
+export async function answerAll(page: Page, picks: string[]) {
+  for (let i = 0; i < picks.length; i++) {
+    await page.getByRole("button", { name: picks[i], exact: true }).click();
+    const last = i === picks.length - 1;
+    await page
+      .getByRole("button", { name: last ? "See result" : "Next", exact: true })
+      .click();
+  }
+}
+
+export async function readProgress(page: Page) {
+  return page.evaluate(() => {
+    const raw = localStorage.getItem("kenpath-museum-v1");
+    return raw ? JSON.parse(raw) : null;
+  });
+}
 
 export { expect };

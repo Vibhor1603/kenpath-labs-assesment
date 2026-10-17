@@ -1,138 +1,82 @@
-"use client";
-
-import type { ViewState } from "@/hooks/useView";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
 
-type TopBarProps = {
-  view: ViewState;
-  totalSteps?: number;
-  pointsChip?: ReactNode;
-  sprout?: ReactNode;
-  isDemo?: boolean;
-  onBack?: () => void;
-};
+const bar =
+  "relative z-20 flex h-[calc(56px+env(safe-area-inset-top))] shrink-0 items-center gap-2 px-[max(12px,env(safe-area-inset-left))] pt-[env(safe-area-inset-top)]";
 
-/**
- * TopBar: 56px + safe-area-inset-top.
- * Home view: wordmark on the left, points + sprout on the right.
- * Lesson/test view: back button + step dots on the left, points + sprout on the right.
- */
-export function TopBar({
-  view,
-  totalSteps,
-  pointsChip,
-  sprout,
-  isDemo = false,
-  onBack,
-}: TopBarProps) {
-  const isLesson = view.name === "lesson";
-  const currentStep = isLesson ? view.step : undefined;
+type HomeTopBarProps = { right: ReactNode };
 
+export function HomeTopBar({ right }: HomeTopBarProps) {
   return (
     <header
-      className={cn(
-        "relative flex w-full items-center justify-between gap-3 px-4",
-        "h-[calc(56px+env(safe-area-inset-top))]",
-        "pt-[env(safe-area-inset-top)]",
-        "bg-background border-b border-border/40",
-      )}
-      aria-label="Top navigation"
+      className={cn(bar, "pl-[max(20px,env(safe-area-inset-left))]")}
+      style={{ viewTransitionName: "topbar" }}
     >
-      {/* Left side */}
-      <div className="flex items-center gap-2 min-w-0">
-        {isLesson && onBack ? (
-          <>
-            <button
-              onClick={onBack}
-              className={cn(
-                "flex items-center justify-center rounded-full",
-                "size-12 -ml-2",
-                "text-foreground hover:bg-muted active:scale-95 transition-transform",
-              )}
-              aria-label="Go back"
-            >
-              <ArrowLeft className="size-5" />
-            </button>
-
-            {/* Step dots */}
-            {totalSteps && currentStep ? (
-              <StepDots current={currentStep} total={totalSteps} />
-            ) : null}
-          </>
-        ) : (
-          <Wordmark />
-        )}
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <span className="font-display text-ink text-[20px] leading-none font-semibold tracking-[-0.02em] whitespace-nowrap">
+          How Things Work
+        </span>
       </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-2 shrink-0">
-        {isDemo && <DemoChip />}
-        {sprout}
-        {pointsChip}
-      </div>
+      <div className="flex items-center gap-2">{right}</div>
     </header>
   );
 }
 
-function Wordmark() {
-  return (
-    <span className="font-display text-[20px] font-[600] leading-none text-foreground truncate">
-      How Things Work
-    </span>
-  );
-}
+type FlowTopBarProps = {
+  current: number;
+  total: number;
+  onClose: () => void;
+  closeLabel: string;
+  /** Segments that are complete. Defaults to everything before `current`. */
+  done?: number;
+};
 
-type StepDotsProps = { current: number; total: number };
-
-function StepDots({ current, total }: StepDotsProps) {
+/** Close, segmented progress and an "n of N" counter. Segments fill with scaleX, never width. */
+export function FlowTopBar({
+  current,
+  total,
+  onClose,
+  closeLabel,
+  done,
+}: FlowTopBarProps) {
+  const filled = done ?? current;
   return (
-    <div
-      className="flex items-center gap-1"
-      aria-label={`Step ${current} of ${total}`}
-      role="status"
-    >
-      {Array.from({ length: total }, (_, i) => (
-        <span
-          key={i}
-          className={cn(
-            "rounded-full transition-all duration-200",
-            i + 1 === current
-              ? "size-2 bg-foreground"
-              : i + 1 < current
-                ? "size-1.5 bg-muted-foreground"
-                : "size-1.5 bg-border",
-          )}
-        />
-      ))}
-    </div>
-  );
-}
-
-function DemoChip() {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5",
-        "bg-accent text-accent-foreground text-[12px] font-medium leading-none",
-        "border border-border/60",
-      )}
-      aria-label="Demo mode active"
-    >
-      Demo
-    </span>
-  );
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _MoreButton() {
-  return (
-    <button
-      className="flex items-center justify-center size-10 rounded-full hover:bg-muted"
-      aria-label="More options"
-    >
-      <MoreHorizontal className="size-4 text-muted-foreground" />
-    </button>
+    <header className={bar} style={{ viewTransitionName: "topbar" }}>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={closeLabel}
+        className="pressable text-ink hover:bg-sunk/70 inline-flex size-12 items-center justify-center rounded-full"
+      >
+        <X className="size-[22px]" aria-hidden="true" />
+      </button>
+      <div
+        className="flex flex-1 items-center gap-1"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={filled}
+        aria-label="Progress"
+      >
+        {Array.from({ length: total }, (_, i) => (
+          <span
+            key={i}
+            className="bg-line relative h-1.5 flex-1 overflow-hidden rounded-full"
+          >
+            <span
+              className="bg-ink absolute inset-0 origin-left rounded-full transition-transform duration-500 ease-[var(--spring-soft)]"
+              style={{ transform: `scaleX(${i < filled ? 1 : 0})` }}
+            />
+          </span>
+        ))}
+      </div>
+      <span
+        className="tabular text-ink-soft w-12 text-center text-[15px] font-semibold"
+        aria-hidden="true"
+      >
+        {Math.min(current, total)}/{total}
+      </span>
+    </header>
   );
 }

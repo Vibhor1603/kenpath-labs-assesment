@@ -1,169 +1,197 @@
 "use client";
 
-import { QuizCard } from "@/components/app/QuizCard";
+import { BottomBar } from "@/components/app/BottomBar";
+import { FlowTopBar } from "@/components/app/TopBar";
+import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
-import { getDiscovery } from "@/content/index";
-import type { DiscoveryId, ShuffledQuestion } from "@/content/types";
+import type { Discovery } from "@/content/types";
+import { vibrateCorrect } from "@/lib/haptics";
 import { buildQuizAttempt } from "@/lib/shuffle";
-import { m } from "motion/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Check, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
-type CardState = "idle" | "selected" | "correct" | "wrong" | "revealed";
-
-export type TestViewProps = {
-  discoveryId: DiscoveryId;
+type TestViewProps = {
+  discovery: Discovery;
   attemptNumber: number;
-  onComplete: (score: number) => void;
-  /** Passed so the parent BottomBar can render a "Next" button. */
-  onNextReady?: (handler: () => void, isReady: boolean) => void;
+  haptics: boolean;
+  /** Called the moment question 5 is answered: that is when an attempt counts. */
+  onFinish: (score: number, results: boolean[]) => void;
+  onSeeResult: () => void;
+  onClose: () => void;
 };
 
-/**
- * TestView: 5-question multiple choice quiz.
- * Progress bar scales from left. Tapping an option gives feedback < 100ms.
- * After Q5, calls onComplete with final score.
- */
-export function TestView({
-  discoveryId,
+const LETTERS = ["A", "B", "C", "D"];
+
+export default function TestView({
+  discovery,
   attemptNumber,
-  onComplete,
-  onNextReady,
+  haptics,
+  onFinish,
+  onSeeResult,
+  onClose,
 }: TestViewProps) {
-  const discovery = getDiscovery(discoveryId);
+  // Fixed for the life of this attempt; the stored count changes when question 5 is answered.
+  const [attempt] = useState(attemptNumber);
   const questions = useMemo(
-    () => (discovery ? buildQuizAttempt(discovery, attemptNumber) : []),
-    [discovery, attemptNumber],
+    () => buildQuizAttempt(discovery, attempt),
+    [discovery, attempt],
   );
+  const [index, setIndex] = useState(0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [results, setResults] = useState<boolean[]>([]);
+  const q = questions[index];
+  const total = questions.length;
+  const isLast = index === total - 1;
+  const answered = picked !== null;
+  const correct = answered && picked === q.answer;
 
-  const [qIndex, setQIndex] = useState(0);
-  const [score, setScore] = useState(0);
+  const pick = (i: number) => {
+    if (answered) return;
+    const ok = i === q.answer;
+    const nextResults = [...results, ok];
+    setPicked(i);
+    setResults(nextResults);
+    if (ok) vibrateCorrect(haptics);
+    if (isLast) onFinish(nextResults.filter(Boolean).length, nextResults);
+  };
 
-  const question: ShuffledQuestion | undefined = questions[qIndex];
-
-  const handleQuestionComplete = useCallback(
-    (earnedPoint: boolean) => {
-      const nextScore = score + (earnedPoint ? 1 : 0);
-      if (earnedPoint) setScore(nextScore);
-
-      const nextIdx = qIndex + 1;
-      if (nextIdx >= questions.length) {
-        onComplete(nextScore);
-      } else {
-        setQIndex(nextIdx);
-      }
-    },
-    [score, qIndex, questions.length, onComplete],
-  );
-
-  if (!question) return null;
-
-  return (
-    <CurrentQuestion
-      key={question.id}
-      question={question}
-      qIndex={qIndex}
-      totalQuestions={questions.length}
-      onAnswered={handleQuestionComplete}
-      onNextReady={onNextReady}
-    />
-  );
-}
-
-type CurrentQuestionProps = {
-  question: ShuffledQuestion;
-  qIndex: number;
-  totalQuestions: number;
-  onAnswered: (earnedPoint: boolean) => void;
-  onNextReady?: (handler: () => void, isReady: boolean) => void;
-};
-
-function CurrentQuestion({
-  question,
-  qIndex,
-  totalQuestions,
-  onAnswered,
-  onNextReady,
-}: CurrentQuestionProps) {
-  const [cardStates, setCardStates] = useState<CardState[]>(() =>
-    question.options.map(() => "idle" as CardState),
-  );
-
-  const isAnswered = cardStates.some((s) => s !== "idle");
-  const progress = (qIndex + (isAnswered ? 1 : 0)) / totalQuestions;
-
-  const earnedPoint = cardStates.some(
-    (s, i) => s === "correct" && i === question.answer,
-  );
-
-  const handleNext = useCallback(() => {
-    onAnswered(earnedPoint);
-  }, [onAnswered, earnedPoint]);
-
-  useEffect(() => {
-    onNextReady?.(handleNext, isAnswered);
-  }, [isAnswered, handleNext, onNextReady]);
-
-  const handleSelect = (optionIndex: number) => {
-    if (isAnswered) return;
-    const isCorrect = optionIndex === question.answer;
-
-    setCardStates((prev) => {
-      const next = [...prev];
-      next[optionIndex] = isCorrect ? "correct" : "wrong";
-      if (!isCorrect) next[question.answer] = "revealed";
-      return next;
-    });
+  const next = () => {
+    if (!answered) return;
+    if (isLast) {
+      onSeeResult();
+      return;
+    }
+    setIndex(index + 1);
+    setPicked(null);
   };
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
-      {/* Progress bar */}
-      <div className="mx-4 mt-3 h-1 overflow-hidden rounded-full bg-card">
-        <m.div
-          className="h-full rounded-full bg-foreground"
-          animate={{ scaleX: progress }}
-          initial={{ scaleX: 0 }}
-          style={{ transformOrigin: "left" }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        />
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col" data-domain={discovery.domain}>
+      <FlowTopBar
+        current={index + 1}
+        total={total}
+        done={results.length}
+        onClose={onClose}
+        closeLabel={copy.test.close}
+      />
 
-      {/* Question counter */}
-      <p className="mx-4 mt-2 text-[13px] font-medium text-muted-foreground">
-        {copy.test.questionOf(qIndex + 1, totalQuestions)}
-      </p>
+      <main className="scroll-area min-h-0 flex-1 px-[max(16px,env(safe-area-inset-left))] pt-4 pb-4">
+        <div key={q.id} className="anim-view-in">
+          <p className="eyebrow text-ink-soft">
+            {copy.test.questionOf(index + 1, total)}
+          </p>
+          <h2 className="mt-2 min-h-[56px] text-[22px] leading-[28px]">{q.q}</h2>
 
-      {/* Question */}
-      <div className="mx-4 mt-4 mb-6">
-        <h2 className="font-display text-[22px] font-[600] leading-snug text-foreground">
-          {question.q}
-        </h2>
-      </div>
+          <div className="mt-5 flex flex-col gap-3" role="group" aria-label={q.q}>
+            {q.options.map((option, i) => {
+              const isPicked = picked === i;
+              const isAnswer = i === q.answer;
+              const state = !answered
+                ? "idle"
+                : isPicked && isAnswer
+                  ? "correct"
+                  : isPicked
+                    ? "wrong"
+                    : isAnswer
+                      ? "reveal"
+                      : "muted";
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => pick(i)}
+                  aria-disabled={answered || undefined}
+                  aria-pressed={isPicked}
+                  className={cn(
+                    "pressable flex min-h-16 w-full items-center gap-3.5 rounded-[18px] px-4 py-3 text-left text-[17px] leading-[23px] ring-inset",
+                    "active:scale-[0.98]",
+                    state === "idle" &&
+                      "bg-surface ring-line hover:ring-line-strong ring-1",
+                    state === "correct" && "bg-correct-tint ring-correct ring-2",
+                    state === "wrong" && "anim-shake bg-wrong-tint ring-wrong ring-2",
+                    state === "reveal" && "bg-surface ring-correct ring-2",
+                    state === "muted" && "bg-surface ring-line opacity-50 ring-1",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold transition-colors duration-150",
+                      state === "idle" || state === "muted"
+                        ? "bg-sunk text-ink-soft"
+                        : "",
+                      state === "correct" || state === "reveal"
+                        ? "bg-correct text-surface"
+                        : "",
+                      state === "wrong" ? "bg-wrong text-surface" : "",
+                    )}
+                    aria-hidden="true"
+                  >
+                    {state === "correct" || state === "reveal" ? (
+                      <Check className="anim-pop-in size-4" strokeWidth={3} />
+                    ) : state === "wrong" ? (
+                      <X className="anim-pop-in size-4" strokeWidth={3} />
+                    ) : (
+                      LETTERS[i]
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1 font-semibold">{option}</span>
+                  {state === "reveal" ? (
+                    <span className="sr-only">Right answer</span>
+                  ) : null}
+                  {state === "wrong" ? (
+                    <span className="sr-only">Your answer, not right</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Answer cards */}
-      <div className="flex flex-col gap-3 px-4 pb-4 overflow-y-auto">
-        {question.options.map((opt, i) => (
-          <QuizCard
-            key={`${question.id}-${i}`}
-            text={opt}
-            state={cardStates[i] ?? "idle"}
-            onSelect={() => handleSelect(i)}
-            index={i}
-          />
-        ))}
+          <div className="mt-4 min-h-[88px]" aria-live="polite">
+            {answered ? (
+              <div
+                className={cn(
+                  "anim-rise-in flex gap-3 rounded-[18px] p-4",
+                  correct ? "bg-correct-tint" : "bg-wrong-tint",
+                )}
+              >
+                <span
+                  className={cn(
+                    "text-surface mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full",
+                    correct ? "bg-correct" : "bg-wrong",
+                  )}
+                  aria-hidden="true"
+                >
+                  {correct ? (
+                    <Check className="size-3.5" strokeWidth={3} />
+                  ) : (
+                    <X className="size-3.5" strokeWidth={3} />
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p
+                    className={cn(
+                      "text-[17px] leading-[23px] font-semibold",
+                      correct ? "text-correct" : "text-wrong",
+                    )}
+                  >
+                    {correct
+                      ? copy.quiz.correct[index % copy.quiz.correct.length]
+                      : copy.quiz.wrong}
+                  </p>
+                  <p className="text-small text-ink mt-0.5">{q.why}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </main>
 
-        {/* Why explanation */}
-        {isAnswered && (
-          <m.p
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: 0.1 }}
-            className="mt-1 rounded-[12px] bg-card px-4 py-3 text-[15px] text-muted-foreground"
-          >
-            {question.why}
-          </m.p>
-        )}
-      </div>
+      <BottomBar>
+        <Button className="flex-1" onClick={next} disabled={!answered}>
+          {isLast ? copy.test.seeResult : copy.test.next}
+        </Button>
+      </BottomBar>
     </div>
   );
 }

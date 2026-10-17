@@ -20,6 +20,9 @@ export type PartPose = {
   skewY?: number;
 };
 
+/** Where the stage camera looks for a step, in art (viewBox) coordinates. */
+export type Camera = { x: number; y: number; scale: number };
+
 export type Step = {
   id: string;
   title: string;
@@ -28,6 +31,7 @@ export type Step = {
   partFocus: string[];
   labels: Label[];
   pose: Record<string, PartPose>;
+  camera?: Camera;
 };
 
 export type QuizQuestion = {
@@ -98,7 +102,32 @@ export type TestOutcome = {
   attemptNumber: number;
 };
 
-export type ArtComponentProps = {
-  idPrefix?: string;
-  variant?: "full" | "trophy";
+/** Props for the small exterior art used on Home, the collection and the reward. */
+export type ExhibitArtProps = {
+  idPrefix: string;
+  tone?: "full" | "silhouette";
+  className?: string;
+};
+
+/** Props for the full lesson art. Every part stays mounted; steps change targets only. */
+export type LessonArtProps = {
+  idPrefix: string;
+  stepIndex: number;
+  focus: string[];
+  pose: Record<string, PartPose>;
+  playing: boolean;
+  reduced: boolean;
+  lite: boolean;
+};
+
+export type LegendItem = { color: string; label: string };
+
+export type LessonArtModule = {
+  default: import("react").ComponentType<LessonArtProps>;
+  viewBox: { w: number; h: number };
+  legend?: readonly LegendItem[];
+  /** Zero-based step indexes that show the legend. */
+  legendSteps?: readonly number[];
+  /** Short notes shown under the stage, by zero-based step index. */
+  notes?: Readonly<Record<number, string>>;
 };

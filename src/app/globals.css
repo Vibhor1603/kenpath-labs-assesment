@@ -1,10 +1,29 @@
-/* ✦ Kenpath Museum — warm pastel, Fraunces + Inter, no dark mode */
+/* Hallmark · macrostructure: mobile museum app · tone: playful-premium · anchor: porcelain + ink, brass reward
+ * theme: custom (vibe: "museum guide, porcelain, ink, brass, calm science") · display: Bricolage Grotesque + body: Figtree
+ * axes: light paper / grotesk-sans display / neutral ink with warm brass accent
+ */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
 @theme inline {
-  /* ── Colour bridge: Tailwind utilities → CSS custom props ── */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-brass: var(--brass);
+  --color-brass-ink: var(--brass-ink);
+  --color-brass-tint: var(--brass-tint);
+  --color-correct: var(--correct);
+  --color-correct-tint: var(--correct-tint);
+  --color-wrong: var(--wrong);
+  --color-wrong-tint: var(--wrong-tint);
+  --color-domain: var(--domain);
+  --color-domain-tint: var(--domain-tint);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -24,81 +43,222 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* ── Font variables ── */
-  --font-sans: var(--font-inter);
-  --font-heading: var(--font-fraunces);
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, sans-serif;
+  --font-heading: var(--font-display);
 
-  /* ── Radius scale ── */
-  --radius-sm: calc(var(--radius) * 0.5);
-  --radius-md: calc(var(--radius) * 0.75);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.5);
-  --radius-2xl: calc(var(--radius) * 2);
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-small: 15px;
+  --text-small--line-height: 21px;
+  --text-body: 17px;
+  --text-body--line-height: 25px;
+  --text-title-s: 20px;
+  --text-title-s--line-height: 26px;
+  --text-title: 24px;
+  --text-title--line-height: 29px;
+  --text-display: 30px;
+  --text-display--line-height: 34px;
+  --text-hero: 44px;
+  --text-hero--line-height: 46px;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /*
-  Palette (hex source of truth, mapped to OKLCH below):
-  Paper      #FBF5EC   Sand       #F1E4D1   Peach    #F6C9A8
-  Butter     #F7E3A1   Sage       #C9DDB8   Sky      #CFE4EC
-  Blush      #F3C6C6   Lavender   #D9D0EE
-  Soft ink   #5E554D   Deep ink   #2B2420
-  Kiln       #A94A1C   Ember      #E2703A
-  Deep teal  #1F6672   Teal       #2F7F8C
-  Deep berry #A3384B   Berry      #C2475B
-  Deep leaf  #2F6A3B   Leaf       #3E7D4A
+  Palette (hex is the source of truth, see src/lib/tokens.ts)
+  canvas #F3F0EA  surface #FFFDF8  sunk #E9E4DA  line #DDD6C8  line-strong #C9C0AE
+  ink #17181C  ink-soft #575C66
+  brass #B5832F (art and large marks only)  brass-ink #8A5F17 (text)  brass-tint #F4E7CC
+  correct #1D6B4B / #E2EFE6  wrong #A8392D / #F6E3DF
+  technology #2C6680 / #E3ECF0  nature #386B43 / #E5ECDF  body #A23A4D / #F3E3E3
 */
-
 :root {
-  /* ── Shadcn tokens mapped to the museum palette ── */
-  --background:         oklch(0.971 0.014 85.87);   /* Paper    #FBF5EC */
-  --foreground:         oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
-  --card:               oklch(0.919 0.028 79.18);   /* Sand     #F1E4D1 */
-  --card-foreground:    oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
-  --popover:            oklch(0.971 0.014 85.87);   /* Paper    #FBF5EC */
-  --popover-foreground: oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
-  --primary:            oklch(0.480 0.126 42.63);   /* Kiln     #A94A1C */
-  --primary-foreground: oklch(0.971 0.014 85.87);   /* Paper    #FBF5EC */
-  --secondary:          oklch(0.919 0.028 79.18);   /* Sand     #F1E4D1 */
-  --secondary-foreground: oklch(0.196 0.017 48.56); /* Deep ink #2B2420 */
-  --muted:              oklch(0.919 0.028 79.18);   /* Sand     #F1E4D1 */
-  --muted-foreground:   oklch(0.393 0.020 54.27);   /* Soft ink #5E554D */
-  --accent:             oklch(0.839 0.066 58.21);   /* Peach    #F6C9A8 */
-  --accent-foreground:  oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
-  --destructive:        oklch(0.442 0.116 13.02);   /* Deep berry #A3384B */
-  --border:             oklch(0.880 0.022 78.00);   /* between Paper and Sand */
-  --input:              oklch(0.880 0.022 78.00);   /* same as border */
-  --ring:               oklch(0.196 0.017 48.56);   /* Deep ink #2B2420 */
-  --radius:             16px;
+  --canvas: oklch(95.6% 0.009 84.6);
+  --surface: oklch(99.4% 0.007 88.6);
+  --sunk: oklch(92% 0.014 84.6);
+  --line: oklch(87.8% 0.02 84.6);
+  --line-strong: oklch(81% 0.027 84.6);
+  --backdrop: oklch(91.1% 0.014 84.6);
+  --ink: oklch(21% 0.008 274.5);
+  --ink-soft: oklch(47.4% 0.017 264.4);
+  --brass: oklch(64.5% 0.116 76.6);
+  --brass-ink: oklch(51.9% 0.1 74.9);
+  --brass-tint: oklch(93.1% 0.038 85.3);
+  --correct: oklch(47.2% 0.091 161.7);
+  --correct-tint: oklch(94% 0.018 155.8);
+  --wrong: oklch(50.3% 0.148 29.4);
+  --wrong-tint: oklch(93% 0.022 31.8);
+  --tech: oklch(48.3% 0.073 230.2);
+  --tech-tint: oklch(93.7% 0.011 226);
+  --nature: oklch(48.1% 0.085 149.3);
+  --nature-tint: oklch(93.4% 0.019 130.2);
+  --body-c: oklch(50% 0.138 12.6);
+  --body-tint: oklch(92.9% 0.018 17.5);
+  --domain: var(--tech);
+  --domain-tint: var(--tech-tint);
+
+  --shadow-color: 250 12% 20%;
+  --shadow-sm:
+    0 1px 2px hsl(var(--shadow-color) / 0.06), 0 2px 6px hsl(var(--shadow-color) / 0.05);
+  --shadow-md:
+    0 1px 2px hsl(var(--shadow-color) / 0.06),
+    0 8px 24px -6px hsl(var(--shadow-color) / 0.12);
+  --shadow-lg:
+    0 2px 4px hsl(var(--shadow-color) / 0.05),
+    0 24px 48px -12px hsl(var(--shadow-color) / 0.18);
+
+  --spring-soft: linear(
+    0,
+    0.04,
+    0.134,
+    0.25,
+    0.371,
+    0.485,
+    0.587,
+    0.675,
+    0.749,
+    0.809,
+    0.856,
+    0.894,
+    0.923,
+    0.945,
+    0.961,
+    0.973,
+    0.982,
+    0.988,
+    0.993,
+    0.996,
+    0.998,
+    0.999,
+    1
+  );
+  --spring-press: linear(
+    0,
+    0.071,
+    0.231,
+    0.42,
+    0.601,
+    0.753,
+    0.871,
+    0.953,
+    1.005,
+    1.033,
+    1.045,
+    1.045,
+    1.04,
+    1.032,
+    1.023,
+    1.015,
+    1.009,
+    1.004,
+    1.001,
+    0.999,
+    0.998,
+    1
+  );
+  --spring-ui: linear(
+    0,
+    0.069,
+    0.216,
+    0.385,
+    0.544,
+    0.678,
+    0.783,
+    0.862,
+    0.918,
+    0.955,
+    0.979,
+    0.993,
+    1.001,
+    1.005,
+    1.006,
+    1.005,
+    1.003,
+    1.002,
+    1.001,
+    1
+  );
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--surface);
+  --secondary: var(--sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sunk);
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--brass-tint);
+  --accent-foreground: var(--ink);
+  --destructive: var(--wrong);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ink);
+  --radius: 18px;
+}
+
+[data-domain="technology"] {
+  --domain: var(--tech);
+  --domain-tint: var(--tech-tint);
+}
+[data-domain="nature"] {
+  --domain: var(--nature);
+  --domain-tint: var(--nature-tint);
+}
+[data-domain="body"] {
+  --domain: var(--body-c);
+  --domain-tint: var(--body-tint);
 }
 
 @layer base {
-  /* Remove grey tap flash on mobile */
   * {
     -webkit-tap-highlight-color: transparent;
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+
+  html,
+  body {
+    overflow-x: clip;
   }
 
   html {
-    /* Prevent horizontal scroll at the root */
-    overflow-x: clip;
     @apply font-sans;
+    background: var(--backdrop);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   body {
-    /* Required by shadcn Drawer for iOS sheet positioning */
     position: relative;
-    @apply bg-background text-foreground;
+    color: var(--ink);
+    background: var(--backdrop);
   }
 
-  /* Overscroll: prevent pull-to-refresh on lesson/test/result/reward views */
   html[data-view="lesson"],
   html[data-view="test"],
   html[data-view="result"],
   html[data-view="reward"] {
     overscroll-behavior-y: none;
   }
+  html[data-view="lesson"] body,
+  html[data-view="test"] body,
+  html[data-view="result"] body,
+  html[data-view="reward"] body {
+    overscroll-behavior-y: none;
+  }
 
-  /* Primary actions: no double-tap zoom delay, native feel */
   button,
   [role="button"],
   a,
@@ -106,45 +266,498 @@
     touch-action: manipulation;
   }
 
-  /* Shelf / horizontal scroller: contain overscroll */
-  [data-shelf-scroll] {
-    overscroll-behavior-x: contain;
+  button:not(:disabled) {
+    cursor: pointer;
   }
 
-  /* Numbers that change should never shift layout */
-  .tabular-nums {
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  /* Shared press feedback: lands in the next frame even when JS is busy. */
+  .pressable {
+    transition:
+      transform 160ms var(--spring-press),
+      background-color 160ms var(--ease-out),
+      border-color 160ms var(--ease-out),
+      opacity 160ms var(--ease-out);
+  }
+  .pressable:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.97);
+    transition-duration: 100ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  .tabular {
     font-variant-numeric: tabular-nums;
   }
 
-  /* Focus ring: 2 px Deep ink with 2 px Paper offset, no generic browser ring */
-  :focus-visible {
-    outline: 2px solid oklch(0.196 0.017 48.56); /* Deep ink */
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px oklch(0.971 0.014 85.87); /* Paper halo */
+  .eyebrow {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
-  /* Grain overlay stub: paper texture at low opacity */
-  .grain-overlay {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.045;
-    mix-blend-mode: multiply;
-    background-image: url("/grain.png");
-    background-repeat: repeat;
-    background-size: 240px 240px;
-    z-index: 9999;
+  .hairline-floor {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--line-strong) 20%,
+      var(--line-strong) 80%,
+      transparent
+    );
+    height: 1px;
   }
 
-  /* Display font helper */
-  .font-display {
-    font-family: var(--font-fraunces), serif;
-    font-variation-settings: "SOFT" 50;
+  .scroll-area {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: none;
   }
+  .scroll-area::-webkit-scrollbar {
+    display: none;
+  }
+}
 
-  /* Heading defaults to display font */
-  h1, h2 {
-    font-family: var(--font-fraunces), serif;
-    font-variation-settings: "SOFT" 50;
+/* ───────────────────────── Motion ───────────────────────── */
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes dot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+@keyframes leader-draw {
+  from {
+    stroke-dashoffset: var(--len, 60);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes settle {
+  0%,
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+  92% {
+    transform: rotate(0.7deg);
+  }
+}
+@keyframes heat-drift {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  30%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+@keyframes heat-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  35%,
+  65% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+@keyframes drift-up {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  25%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes drift-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  25%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
+  }
+}
+@keyframes beat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(0.962);
+  }
+  48%,
+  100% {
+    transform: scale(1);
+  }
+}
+/* Valves on one 833ms beat: the inlet valves shut at "lub" (0%), the outlet
+   valves shut at "dub" (48%). Leaflets rotate from their hinge. */
+@keyframes valve-in-l {
+  0%,
+  42% {
+    transform: rotate(0deg);
+  }
+  56%,
+  92% {
+    transform: rotate(40deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes valve-in-r {
+  0%,
+  42% {
+    transform: rotate(0deg);
+  }
+  56%,
+  92% {
+    transform: rotate(-40deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes valve-out-l {
+  0% {
+    transform: rotate(0deg);
+  }
+  10%,
+  38% {
+    transform: rotate(-42deg);
+  }
+  48%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes valve-out-r {
+  0% {
+    transform: rotate(0deg);
+  }
+  10%,
+  38% {
+    transform: rotate(42deg);
+  }
+  48%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes chamber-cue {
+  0%,
+  55%,
+  100% {
+    opacity: 0;
+  }
+  14%,
+  36% {
+    opacity: 1;
+  }
+}
+@keyframes hum {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-0.8px);
+  }
+  75% {
+    transform: translateX(0.8px);
+  }
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+@keyframes stamp-land {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.6);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-5deg) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(1);
+  }
+}
+@keyframes spark {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+  }
+}
+@keyframes arrive-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+@keyframes sketch-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  70%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.anim-view-in {
+  animation: view-in 320ms var(--ease-out) both;
+}
+.anim-rise-in {
+  animation: rise-in 300ms var(--ease-out) both;
+}
+.anim-fade-in {
+  animation: fade-in 240ms var(--ease-out) both;
+}
+.anim-pop-in {
+  animation: pop-in 360ms var(--spring-ui) both;
+}
+.anim-shake {
+  animation: shake 300ms var(--ease-out) both;
+}
+
+.idle-settle {
+  transform-origin: 50% 100%;
+  animation: settle 9.5s var(--ease-in-out) 3s infinite;
+}
+
+/* Home exhibit: lifts under the finger, settles back on a spring. */
+.exhibit-press .exhibit-art {
+  transition: transform 420ms var(--spring-press);
+}
+.exhibit-press:active .exhibit-art {
+  transform: translateY(-6px) scale(1.02);
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+}
+
+/* Reward ceremony, 1.6 s. A tap anywhere jumps to the end state. */
+@keyframes reward-bloom {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes reward-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.reward-bloom {
+  transform: translate(-50%, -50%);
+  animation: reward-bloom 600ms var(--ease-out) both;
+}
+.reward-pop {
+  transform-origin: 50% 100%;
+  animation: reward-pop 760ms var(--ease-out) 80ms both;
+}
+.reward-stamp {
+  transform-origin: 70% 60%;
+  animation: stamp-land 420ms var(--ease-out) both;
+}
+[data-skip] *,
+[data-skip] *::before {
+  animation-delay: 0ms !important;
+  animation-duration: 1ms !important;
+}
+
+/* Returning visitors and deep links: hold the first paint until saved progress is read. */
+html[data-pending] [data-app]:not([data-ready]) > * {
+  opacity: 0;
+}
+[data-app][data-ready] > * {
+  transition: opacity 160ms var(--ease-out);
+}
+
+/* Loops stop when the stage is paused or the tab is hidden. */
+[data-paused] .loop,
+[data-paused] .loop * {
+  animation-play-state: paused !important;
+}
+
+/* Calm motion: the OS setting or the in-app switch. Spatial motion becomes a short fade, loops stop. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+  .loop,
+  .loop *,
+  .idle-settle {
+    animation: none !important;
+  }
+  .anim-view-in,
+  .anim-rise-in,
+  .anim-pop-in,
+  .calm-fade {
+    animation-name: fade-in !important;
+    animation-duration: 200ms !important;
+  }
+  .anim-shake {
+    animation: none !important;
+  }
+}
+html[data-calm] .loop,
+html[data-calm] .loop *,
+html[data-calm] .idle-settle {
+  animation: none !important;
+}
+html[data-calm] .anim-view-in,
+html[data-calm] .anim-rise-in,
+html[data-calm] .anim-pop-in,
+html[data-calm] .calm-fade {
+  animation-name: fade-in !important;
+  animation-duration: 200ms !important;
+}
+html[data-calm] .anim-shake {
+  animation: none !important;
+}
+
+/* View transitions: a short crossfade, and the exhibit object travels into the lesson stage. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease-out);
+}
+::view-transition-group(exhibit) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--spring-soft);
+}
+::view-transition-old(exhibit),
+::view-transition-new(exhibit) {
+  animation-duration: 360ms;
+  height: 100%;
+  object-fit: contain;
+}
+::view-transition-group(topbar),
+::view-transition-group(bottombar) {
+  animation-duration: 0ms;
 }

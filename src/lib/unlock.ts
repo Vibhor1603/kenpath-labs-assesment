@@ -39,13 +39,12 @@ export function getTodaysDiscovery(
   isDemo: boolean,
 ): TodaysDiscovery {
   const dayIndex = getDayIndex(progress.firstVisitDate, toLocalToday());
-  const effectiveMax = (isDemo
-    ? 3
-    : Math.min(3, Math.max(progress.maxUnlockedDay, Math.min(dayIndex, 3)))) as DayNumber;
+  const effectiveMax = (
+    isDemo ? 3 : Math.min(3, Math.max(progress.maxUnlockedDay, Math.min(dayIndex, 3)))
+  ) as DayNumber;
 
   const sorted = [...discoveries].sort((a, b) => a.day - b.day);
-  const target =
-    sorted.find((d) => d.day === effectiveMax) ?? sorted[sorted.length - 1];
+  const target = sorted.find((d) => d.day === effectiveMax) ?? sorted[sorted.length - 1];
 
   const allCollected = sorted.every((d) => progress.collected[d.id]);
   if (allCollected) {
@@ -86,13 +85,10 @@ export function getTodaysDiscoveryForDate(
   const dayIndex = getDayIndex(progress.firstVisitDate, todayKey);
   // Today's featured discovery is min(dayIndex, 3). Demo shows the latest day.
   const todayDay = (isDemo ? 3 : Math.min(dayIndex, 3)) as DayNumber;
-  const unlockMax = isDemo
-    ? 3
-    : getNextMaxUnlockedDay(progress.maxUnlockedDay, todayDay);
+  const unlockMax = isDemo ? 3 : getNextMaxUnlockedDay(progress.maxUnlockedDay, todayDay);
 
   const sorted = [...discoveries].sort((a, b) => a.day - b.day);
-  const target =
-    sorted.find((d) => d.day === todayDay) ?? sorted[sorted.length - 1];
+  const target = sorted.find((d) => d.day === todayDay) ?? sorted[sorted.length - 1];
 
   const unlocked = (id: DiscoveryId) => {
     const d = sorted.find((x) => x.id === id);

@@ -9,7 +9,10 @@ function wordCount(text: string): number {
 }
 
 function sentenceCount(text: string): number {
-  return text.split(/[.?!]/).map((s) => s.trim()).filter(Boolean).length;
+  return text
+    .split(/[.?!]/)
+    .map((s) => s.trim())
+    .filter(Boolean).length;
 }
 
 describe("content lint", () => {

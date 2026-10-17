@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createFreshProgress,
-  getTestOutcome,
-  progressReducer,
-} from "@/lib/progress";
+import { createFreshProgress, getTestOutcome, progressReducer } from "@/lib/progress";
 
 describe("progress", () => {
   it("full 3-day scenario gives 120 then 260 with streak 2", () => {

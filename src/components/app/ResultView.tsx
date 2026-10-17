@@ -1,72 +1,109 @@
 "use client";
 
+import { BottomBar } from "@/components/app/BottomBar";
+import { FlowTopBar } from "@/components/app/TopBar";
+import { Button } from "@/components/ui/button";
 import { copy } from "@/content/copy";
-import { getDiscovery } from "@/content/index";
-import type { DiscoveryId } from "@/content/types";
-import { PERFECT_SCORE } from "@/lib/scoring";
+import type { Discovery } from "@/content/types";
+import { cn } from "@/lib/utils";
+import { Check, RotateCcw, X } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 type ResultViewProps = {
-  discoveryId: DiscoveryId;
-  score: number;
-  onTryAgain: () => void;
-  onWatchLesson: () => void;
+  discovery: Discovery;
+  results: boolean[];
+  onRetry: () => void;
+  onLesson: () => void;
+  onClose: () => void;
 };
 
-/**
- * ResultView: shown after a non-perfect test attempt.
- * Score, encouraging message, "Try again" (primary) and "Watch the lesson again" (secondary).
- */
-export function ResultView({
-  discoveryId,
-  score,
-  onTryAgain,
-  onWatchLesson,
+export default function ResultView({
+  discovery,
+  results,
+  onRetry,
+  onLesson,
+  onClose,
 }: ResultViewProps) {
-  const discovery = getDiscovery(discoveryId);
-  const total = PERFECT_SCORE;
-  const isClose = score === total - 1;
+  const score = results.filter(Boolean).length;
+  const total = results.length;
+  const primaryRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    primaryRef.current?.focus({ preventScroll: true });
+  }, []);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 text-center gap-6">
-      {/* Score display */}
-      <div className="flex flex-col items-center gap-2">
-        <div className="font-display text-[44px] font-[600] leading-none text-primary">
-          {score}/{total}
-        </div>
-        <p className="text-[17px] text-muted-foreground">
-          {copy.result.scoreLine(score, total)}
+    <div className="flex min-h-0 flex-1 flex-col" data-domain={discovery.domain}>
+      <FlowTopBar
+        current={total}
+        total={total}
+        done={total}
+        onClose={onClose}
+        closeLabel={copy.test.close}
+      />
+      <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 pb-6 text-center">
+        <ol className="flex gap-2.5" aria-label={copy.result.scoreLine(score, total)}>
+          {results.map((ok, i) => (
+            <li
+              key={i}
+              className={cn(
+                "anim-pop-in flex size-10 items-center justify-center rounded-full",
+                ok
+                  ? "bg-correct text-surface"
+                  : "bg-wrong-tint text-wrong ring-wrong/30 ring-1 ring-inset",
+              )}
+              style={{ animationDelay: `${120 + i * 70}ms` }}
+            >
+              {ok ? (
+                <Check
+                  className="size-[18px]"
+                  strokeWidth={3}
+                  aria-label={`Question ${i + 1}: right`}
+                />
+              ) : (
+                <X
+                  className="size-[18px]"
+                  strokeWidth={3}
+                  aria-label={`Question ${i + 1}: not right`}
+                />
+              )}
+            </li>
+          ))}
+        </ol>
+        <p
+          className="anim-rise-in tabular font-display text-hero mt-8 font-semibold"
+          style={{ animationDelay: "420ms" }}
+        >
+          {score} of {total}
         </p>
-        {isClose ? (
-          <p className="text-[15px] font-medium text-muted-foreground">
-            {copy.result.almost}
-          </p>
-        ) : (
-          <p className="text-[15px] text-muted-foreground">
-            {copy.result.needPerfect}
-          </p>
-        )}
-        {discovery && (
-          <p className="text-[13px] text-muted-foreground opacity-70">
-            {discovery.title}
-          </p>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex w-full flex-col gap-3">
-        <button
-          onClick={onTryAgain}
-          className="flex h-14 w-full items-center justify-center rounded-full bg-primary px-6 text-[17px] font-medium text-primary-foreground active:scale-[0.97] transition-transform"
+        <p
+          className="anim-rise-in text-body text-ink mt-3 max-w-[300px]"
+          style={{ animationDelay: "500ms" }}
         >
-          {copy.result.tryAgain}
-        </button>
-        <button
-          onClick={onWatchLesson}
-          className="flex h-12 w-full items-center justify-center rounded-full bg-card px-6 text-[17px] font-medium text-foreground border border-border/50 active:scale-[0.97] transition-transform"
+          {score === total - 1 ? copy.result.almost : copy.result.needPerfect}
+        </p>
+        <p
+          className="anim-rise-in text-small text-ink-soft mt-1.5 max-w-[300px]"
+          style={{ animationDelay: "560ms" }}
         >
+          {copy.result.shuffleNote}
+        </p>
+        <Button
+          variant="quiet"
+          size="md"
+          className="anim-fade-in mt-6"
+          style={{ animationDelay: "640ms" }}
+          onClick={onLesson}
+        >
+          <RotateCcw aria-hidden="true" />
           {copy.result.watchLessonAgain}
-        </button>
-      </div>
+        </Button>
+      </main>
+      <BottomBar>
+        <Button ref={primaryRef} className="flex-1" onClick={onRetry}>
+          {copy.result.tryAgain}
+        </Button>
+      </BottomBar>
     </div>
   );
 }

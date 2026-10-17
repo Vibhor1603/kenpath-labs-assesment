@@ -71,9 +71,7 @@ export function parseProgress(
     }
     const progress: Progress = {
       ...parsed,
-      introDismissed: Boolean(
-        (parsed as Progress).introDismissed ?? false,
-      ),
+      introDismissed: Boolean((parsed as Progress).introDismissed ?? false),
       settings: {
         haptics: parsed.settings?.haptics ?? true,
         calmMotion: parsed.settings?.calmMotion ?? false,

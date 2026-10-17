@@ -1,6 +1,7 @@
 "use client";
 
-import type { BadgeId, DiscoveryId, Progress, TestOutcome } from "@/content/types";
+import { copy } from "@/content/copy";
+import type { DiscoveryId, Progress, TestOutcome } from "@/content/types";
 import { toDateKey } from "@/lib/date";
 import {
   createFreshProgress,
@@ -14,11 +15,14 @@ import {
   parseProgress,
   type StorageAdapter,
 } from "@/lib/storage";
+import { toast } from "@/lib/toast";
 import { STORAGE_KEY } from "@/lib/tokens";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 type UseProgressReturn = {
   progress: Progress;
+  /** Saved progress has been read. Until then the UI shows the fresh state. */
+  hydrated: boolean;
   dispatch: (action: ProgressAction) => void;
   finishTest: (discoveryId: DiscoveryId, score: number) => TestOutcome;
 };
@@ -31,64 +35,56 @@ function getAdapter(): StorageAdapter {
 }
 
 /**
- * Progress store. Starts with a deterministic fresh state so SSR and the first
- * client render match, then loads from storage in an effect (boot script
- * already set data-returning to avoid a flash).
+ * Progress store. Starts with a deterministic fresh state so the static HTML
+ * and the first client render match, then adopts saved progress in an effect.
+ * The frame stays hidden for returning visitors until then (see the boot script).
  */
 export function useProgress(): UseProgressReturn {
   const todayKey = toDateKey(new Date());
   const saverRef = useRef<ReturnType<typeof createDebouncedSaver> | null>(null);
-  const [progress, dispatch] = useReducer(
-    progressReducer,
-    todayKey,
-    createFreshProgress,
-  );
-  const hydratedRef = useRef(false);
+  const [progress, dispatch] = useReducer(progressReducer, todayKey, createFreshProgress);
+  const [hydrated, setHydrated] = useState(false);
+  const progressRef = useRef(progress);
+
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
 
   useEffect(() => {
     const adapter = getAdapter();
     saverRef.current = createDebouncedSaver(adapter, 100);
-    if (hydratedRef.current) return;
-    hydratedRef.current = true;
-    const raw = adapter.getItem(STORAGE_KEY);
-    const { progress: loaded } = parseProgress(raw, todayKey);
+    const { progress: loaded } = parseProgress(adapter.getItem(STORAGE_KEY), todayKey);
     dispatch({ type: "adoptSnapshot", snapshot: loaded, todayKey });
-  }, [todayKey]);
-
-  useEffect(() => {
     dispatch({ type: "boot", todayKey });
-  }, [todayKey]);
-
-  useEffect(() => {
-    if (!hydratedRef.current) return;
-    saverRef.current?.save(progress);
-  }, [progress]);
-
-  useEffect(() => {
-    const onPageHide = () => saverRef.current?.flush(progress);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- marks the one-time storage read
+    setHydrated(true);
+    if (!adapter.isPersistent) toast(copy.storage.toast);
+    const onPageHide = () => saverRef.current?.flush(progressRef.current);
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);
-  }, [progress]);
+  }, [todayKey]);
+
+  useEffect(() => {
+    if (hydrated) saverRef.current?.save(progress);
+  }, [progress, hydrated]);
 
   const finishTest = useCallback(
     (discoveryId: DiscoveryId, score: number): TestOutcome => {
-      const nowIso = new Date().toISOString();
-      const before = progress;
+      const before = progressRef.current;
       const action: ProgressAction = {
         type: "finishTest",
         discoveryId,
         score,
         todayKey,
-        nowIso,
+        nowIso: new Date().toISOString(),
       };
-      dispatch(action);
       const after = progressReducer(before, action);
+      progressRef.current = after;
+      dispatch(action);
       return getTestOutcome(before, after, discoveryId);
     },
-    [progress, todayKey],
+    [todayKey],
   );
 
-  void (null as BadgeId | null);
-
-  return { progress, dispatch, finishTest };
+  return { progress, hydrated, dispatch, finishTest };
 }

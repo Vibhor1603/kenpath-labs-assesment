@@ -13,9 +13,7 @@ describe("shuffle", () => {
     const a = buildQuizAttempt(fridge, 1);
     const b = buildQuizAttempt(fridge, 2);
     const sameOrder = a.every((q, i) => q.id === b[i].id);
-    const sameOptions = a.every(
-      (q, i) => q.options.join("|") === b[i].options.join("|"),
-    );
+    const sameOptions = a.every((q, i) => q.options.join("|") === b[i].options.join("|"));
     expect(sameOrder && sameOptions).toBe(false);
   });
 

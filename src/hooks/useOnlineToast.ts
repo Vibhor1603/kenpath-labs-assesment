@@ -1,37 +1,27 @@
 "use client";
 
 import { copy } from "@/content/copy";
-import { useEffect, useRef } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
+import { useEffect } from "react";
 
-/**
- * Shows a Sonner toast once when the browser goes offline.
- * Nothing happens when it comes back online (the app keeps working).
- */
+/** One toast when the browser goes offline. The app keeps working: everything is static. */
 export function useOnlineToast(): void {
-  const shownRef = useRef(false);
-
   useEffect(() => {
-    const handleOffline = () => {
-      if (shownRef.current) return;
-      shownRef.current = true;
-      toast(copy.offline.toast, { duration: 5000 });
+    let shown = false;
+    const onOffline = () => {
+      if (shown) return;
+      shown = true;
+      toast(copy.offline.toast);
     };
-
-    const handleOnline = () => {
-      // Reset so offline is announced again if it happens later
-      shownRef.current = false;
+    const onOnline = () => {
+      shown = false;
     };
-
-    window.addEventListener("offline", handleOffline);
-    window.addEventListener("online", handleOnline);
-
-    // Show immediately if already offline on mount
-    if (!navigator.onLine) handleOffline();
-
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", onOnline);
+    if (!navigator.onLine) onOffline();
     return () => {
-      window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", onOnline);
     };
   }, []);
 }

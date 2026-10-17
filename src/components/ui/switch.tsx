@@ -1,31 +1,42 @@
-"use client"
+import { cn } from "@/lib/utils";
 
-import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
-import { cn } from "cn"
+type SwitchProps = {
+  checked: boolean;
+  onCheckedChange: (next: boolean) => void;
+  id?: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
+  className?: string;
+};
 
-function Switch({
-  className,
-  size = "default",
-  ...props
-}: SwitchPrimitive.Root.Props & {
-  size?: "sm" | "default"
-}) {
+/** A native switch: one button with role="switch". The thumb moves with transform only. */
+export function Switch({ checked, onCheckedChange, className, ...aria }: SwitchProps) {
   return (
-    <SwitchPrimitive.Root
-      data-slot="switch"
-      data-size={size}
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-transparent transition-all outline-none group-has-[:focus-visible]/field-label:border-transparent group-has-[:focus-visible]/field-label:ring-0 after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[size=default]:h-[18.4px] data-[size=default]:w-[32px] data-[size=sm]:h-[14px] data-[size=sm]:w-[24px] dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 data-checked:bg-primary data-unchecked:bg-input dark:data-unchecked:bg-input/80 data-disabled:cursor-not-allowed data-disabled:opacity-50",
-        className
+        "group relative inline-flex h-12 w-[60px] shrink-0 items-center justify-center",
+        className,
       )}
-      {...props}
+      {...aria}
     >
-      <SwitchPrimitive.Thumb
-        data-slot="switch-thumb"
-        className="pointer-events-none block rounded-full bg-background ring-0 transition-transform group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 group-data-[size=default]/switch:data-checked:translate-x-[calc(100%-2px)] group-data-[size=sm]/switch:data-checked:translate-x-[calc(100%-2px)] dark:data-checked:bg-primary-foreground group-data-[size=default]/switch:data-unchecked:translate-x-0 group-data-[size=sm]/switch:data-unchecked:translate-x-0 dark:data-unchecked:bg-foreground"
-      />
-    </SwitchPrimitive.Root>
-  )
+      <span
+        aria-hidden="true"
+        className={cn(
+          "relative h-[30px] w-[50px] rounded-full transition-colors duration-200 ease-[var(--ease-out)]",
+          checked ? "bg-ink" : "bg-line-strong",
+        )}
+      >
+        <span
+          className={cn(
+            "bg-surface absolute top-[3px] left-[3px] size-6 rounded-full shadow-[0_1px_2px_rgb(0_0_0/0.18),0_2px_6px_rgb(0_0_0/0.08)] transition-transform duration-300 ease-[var(--spring-ui)] group-active:scale-95",
+            checked && "translate-x-5",
+          )}
+        />
+      </span>
+    </button>
+  );
 }
-
-export { Switch }

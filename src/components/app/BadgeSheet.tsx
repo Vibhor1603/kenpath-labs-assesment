@@ -1,103 +1,84 @@
 "use client";
 
+import { BadgePin } from "@/components/app/BadgePin";
+import { Sheet } from "@/components/ui/sheet";
 import { copy } from "@/content/copy";
-import type { Badge, BadgeId } from "@/content/types";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import type { BadgeId, Progress } from "@/content/types";
 import { cn } from "@/lib/utils";
 
-type BadgeSheetProps = {
-  open: boolean;
-  onClose: () => void;
-  badges: Badge[];
-};
-
-const ALL_BADGES: BadgeId[] = [
+const ORDER: BadgeId[] = [
   "first-discovery",
   "perfect-scholar",
   "streak-3",
   "curious-mind",
 ];
 
-const BADGE_ICONS: Record<BadgeId, string> = {
-  "first-discovery": "★",
-  "perfect-scholar": "◆",
-  "streak-3": "▲",
-  "curious-mind": "●",
+function formatDate(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" }).format(
+      new Date(iso),
+    );
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
+type BadgeSheetProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  progress: Progress;
 };
 
-const BADGE_DESC: Record<BadgeId, string> = {
-  "first-discovery": "Complete your first discovery.",
-  "perfect-scholar": "Pass on your first try.",
-  "streak-3": "Three days in a row.",
-  "curious-mind": "Understand all three discoveries.",
-};
-
-/**
- * BadgeSheet: bottom sheet listing all 4 badges, earned or locked.
- * Enamel pin grid style. Earned badges show the date.
- */
-export function BadgeSheet({ open, onClose, badges }: BadgeSheetProps) {
-  const earnedIds = new Set(badges.map((b) => b.id));
-
+export function BadgeSheet({ open, onOpenChange, progress }: BadgeSheetProps) {
+  const earned = new Map(progress.badges.map((b) => [b.id, b.earnedAt]));
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="bottom"
-        className="rounded-t-[24px] border-t-0 bg-background px-0 pt-0 pb-safe"
-      >
-        <div className="px-5 pt-4 pb-6">
-          <SheetHeader className="mb-4">
-            <SheetTitle className="font-display text-[20px] font-[600] text-foreground">
-              Badges
-            </SheetTitle>
-          </SheetHeader>
-
-          <div className="grid grid-cols-2 gap-3">
-            {ALL_BADGES.map((id) => {
-              const earned = earnedIds.has(id);
-              const badge = badges.find((b) => b.id === id);
-              const earnedDate = badge
-                ? new Date(badge.earnedAt).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                  })
-                : null;
-
-              return (
-                <div
-                  key={id}
-                  className={cn(
-                    "flex flex-col items-center gap-2 rounded-[16px] border p-4 text-center",
-                    earned
-                      ? "border-border/50 bg-card"
-                      : "border-border/20 bg-muted/20 opacity-50",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex size-12 items-center justify-center rounded-full text-[24px]",
-                      earned ? "bg-primary/10" : "bg-muted/30",
-                    )}
-                  >
-                    {BADGE_ICONS[id]}
-                  </div>
-                  <p className="text-[13px] font-[600] text-foreground leading-snug">
-                    {copy.badges.names[id]}
-                  </p>
-                  <p className="text-[12px] text-muted-foreground leading-snug">
-                    {BADGE_DESC[id]}
-                  </p>
-                  {earnedDate && (
-                    <p className="text-[11px] text-muted-foreground">
-                      Earned {earnedDate}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+    <Sheet open={open} onOpenChange={onOpenChange} title={copy.badges.sheetTitle}>
+      <div className="bg-brass-tint/70 flex items-center gap-4 rounded-[20px] px-4 py-3.5">
+        <div className="min-w-0 flex-1">
+          <p className="text-caption text-brass-ink font-semibold tracking-[0.06em] uppercase">
+            {copy.reward.pointsLabel}
+          </p>
+          <p className="tabular font-display text-display text-ink font-semibold">
+            {progress.points}
+          </p>
         </div>
-      </SheetContent>
+        <p className="tabular text-small text-ink-soft">{earned.size} of 4 badges</p>
+      </div>
+      <ul className="mt-4 grid grid-cols-2 gap-3 pb-2">
+        {ORDER.map((id) => {
+          const at = earned.get(id);
+          return (
+            <li
+              key={id}
+              className={cn(
+                "ring-line flex flex-col items-center rounded-[20px] px-3 pt-4 pb-4 text-center ring-1",
+                at ? "bg-surface" : "bg-canvas",
+              )}
+            >
+              <BadgePin id={id} earned={Boolean(at)} className="size-16" />
+              <p
+                className={cn(
+                  "mt-2.5 text-[15px] leading-5 font-semibold",
+                  at ? "text-ink" : "text-ink-soft",
+                )}
+              >
+                {copy.badges.names[id]}
+              </p>
+              <p className="text-caption text-ink-soft mt-1">
+                {copy.badges.descriptions[id]}
+              </p>
+              <p
+                className={cn(
+                  "text-caption mt-2 font-semibold",
+                  at ? "text-brass-ink" : "text-ink-soft",
+                )}
+              >
+                {at ? copy.badges.earnedOn(formatDate(at)) : copy.badges.notYet}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
     </Sheet>
   );
 }

@@ -1,16 +1,9 @@
 import { describe, expect, it } from "vitest";
-import {
-  getDisplayedStreak,
-  getStreakAfterPass,
-  isStreakBroken,
-} from "@/lib/streak";
+import { getDisplayedStreak, getStreakAfterPass, isStreakBroken } from "@/lib/streak";
 
 describe("streak", () => {
   it("first perfect gives 1", () => {
-    const next = getStreakAfterPass(
-      { count: 0, lastPerfectDate: null },
-      "2026-10-17",
-    );
+    const next = getStreakAfterPass({ count: 0, lastPerfectDate: null }, "2026-10-17");
     expect(next).toEqual({ count: 1, lastPerfectDate: "2026-10-17" });
   });
 
@@ -40,10 +33,7 @@ describe("streak", () => {
 
   it("displayed streak is 0 when lastPerfectDate is 2+ days ago", () => {
     expect(
-      getDisplayedStreak(
-        { count: 3, lastPerfectDate: "2026-10-15" },
-        "2026-10-17",
-      ),
+      getDisplayedStreak({ count: 3, lastPerfectDate: "2026-10-15" }, "2026-10-17"),
     ).toBe(0);
     expect(
       isStreakBroken({ count: 3, lastPerfectDate: "2026-10-15" }, "2026-10-17"),

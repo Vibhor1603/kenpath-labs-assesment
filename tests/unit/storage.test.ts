@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createFreshProgress } from "@/lib/progress";
-import {
-  createStorageAdapter,
-  isProgressShape,
-  parseProgress,
-} from "@/lib/storage";
+import { createStorageAdapter, isProgressShape, parseProgress } from "@/lib/storage";
 
 describe("storage", () => {
   it("corrupt JSON falls back to fresh state", () => {

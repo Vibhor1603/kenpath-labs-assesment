@@ -3,41 +3,27 @@
 import { DEMO_STORAGE_KEY } from "@/lib/tokens";
 import { useEffect, useState } from "react";
 
+function readDemoFlag(): boolean {
+  const flag = new URLSearchParams(window.location.search).get("demo");
+  try {
+    if (flag === "1") sessionStorage.setItem(DEMO_STORAGE_KEY, "1");
+    if (flag === "0") sessionStorage.removeItem(DEMO_STORAGE_KEY);
+    if (flag === "1" || flag === "0") return flag === "1";
+    return sessionStorage.getItem(DEMO_STORAGE_KEY) === "1";
+  } catch {
+    return flag === "1";
+  }
+}
+
 /**
- * Reads ?demo=1 / ?demo=0 from the URL and persists the flag in sessionStorage.
- * Starts false so SSR matches the first client paint, then updates in an effect.
+ * ?demo=1 unlocks all three discoveries for this tab (sessionStorage); ?demo=0 clears it.
+ * Starts false so the static HTML matches the first client render.
  */
 export function useDemoMode(): boolean {
   const [isDemo, setIsDemo] = useState(false);
-
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const flag = params.get("demo");
-
-    if (flag === "1") {
-      try {
-        sessionStorage.setItem(DEMO_STORAGE_KEY, "1");
-      } catch {
-        // ignore
-      }
-      setIsDemo(true);
-      return;
-    }
-    if (flag === "0") {
-      try {
-        sessionStorage.removeItem(DEMO_STORAGE_KEY);
-      } catch {
-        // ignore
-      }
-      setIsDemo(false);
-      return;
-    }
-    try {
-      setIsDemo(sessionStorage.getItem(DEMO_STORAGE_KEY) === "1");
-    } catch {
-      setIsDemo(false);
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the URL once after hydration
+    setIsDemo(readDemoFlag());
   }, []);
-
   return isDemo;
 }

@@ -30,8 +30,7 @@ export const sources: Source[] = [
     id: "heart-blood-flow",
     title: "Blood flow through the heart",
     url: "https://www.nhlbi.nih.gov/health/heart/blood-flow",
-    usedFor:
-      "Valves stop backflow, right side to lungs, left side to body.",
+    usedFor: "Valves stop backflow, right side to lungs, left side to body.",
   },
   {
     id: "heart-anatomy",

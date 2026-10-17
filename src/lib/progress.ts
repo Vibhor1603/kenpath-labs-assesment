@@ -1,9 +1,4 @@
-import type {
-  BadgeId,
-  DiscoveryId,
-  Progress,
-  TestOutcome,
-} from "@/content/types";
+import type { BadgeId, DiscoveryId, Progress, TestOutcome } from "@/content/types";
 import { getNewBadges } from "@/lib/badges";
 import { calculatePointsForPass, isPerfectScore } from "@/lib/scoring";
 import { getStreakAfterPass } from "@/lib/streak";
@@ -98,24 +93,15 @@ export function progressReducer(state: Progress, action: ProgressAction): Progre
     case "dismissIntro":
       return { ...state, introDismissed: true };
     case "adoptSnapshot": {
-      const dayIndex = getDayIndex(
-        action.snapshot.firstVisitDate,
-        action.todayKey,
-      );
+      const dayIndex = getDayIndex(action.snapshot.firstVisitDate, action.todayKey);
       const capped = Math.min(dayIndex, 3) as 1 | 2 | 3;
       return {
         ...action.snapshot,
-        maxUnlockedDay: getNextMaxUnlockedDay(
-          action.snapshot.maxUnlockedDay,
-          capped,
-        ),
+        maxUnlockedDay: getNextMaxUnlockedDay(action.snapshot.maxUnlockedDay, capped),
         settings: state.settings,
         introDismissed: state.introDismissed || action.snapshot.introDismissed,
         seenBadges: [
-          ...new Set([
-            ...state.seenBadges,
-            ...action.snapshot.badges.map((b) => b.id),
-          ]),
+          ...new Set([...state.seenBadges, ...action.snapshot.badges.map((b) => b.id)]),
         ],
       };
     }
@@ -137,9 +123,7 @@ export function getTestOutcome(
     (isNowCollected && !wasCollected) ||
     after.streak.lastPerfectDate !== before.streak.lastPerfectDate;
 
-  const newBadges = after.badges.filter(
-    (b) => !before.badges.some((x) => x.id === b.id),
-  );
+  const newBadges = after.badges.filter((b) => !before.badges.some((x) => x.id === b.id));
 
   return {
     isPerfect: perfect,

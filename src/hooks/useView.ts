@@ -12,118 +12,88 @@ export type ViewState =
   | { name: "result"; discoveryId: DiscoveryId }
   | { name: "reward"; discoveryId: DiscoveryId };
 
-function parseViewFromURL(search: string): ViewState {
+const IDS: readonly DiscoveryId[] = ["fridge", "leaf", "heart"];
+
+export function parseViewFromSearch(search: string): ViewState {
   const params = new URLSearchParams(search);
   const view = params.get("view");
-  const d = params.get("d") as DiscoveryId | null;
-
-  if (view === "lesson" && d) {
-    const step = Math.max(1, parseInt(params.get("step") ?? "1", 10));
+  const raw = params.get("d");
+  const d = IDS.find((id) => id === raw);
+  if (!d) return { name: "home" };
+  if (view === "lesson") {
+    const step = Math.max(1, parseInt(params.get("step") ?? "1", 10) || 1);
     return { name: "lesson", discoveryId: d, step };
   }
-  if (view === "test" && d) return { name: "test", discoveryId: d };
-  if (view === "result" && d) return { name: "result", discoveryId: d };
-  if (view === "reward" && d) return { name: "reward", discoveryId: d };
+  if (view === "test" || view === "result" || view === "reward")
+    return { name: view, discoveryId: d };
   return { name: "home" };
 }
 
-function buildURL(view: ViewState): string {
+export function buildURL(view: ViewState): string {
   if (view.name === "home") return "/";
   const params = new URLSearchParams({ view: view.name, d: view.discoveryId });
   if (view.name === "lesson") params.set("step", String(view.step));
   return `/?${params.toString()}`;
 }
 
-function setDataView(name: ViewName): void {
-  document.documentElement.dataset.view = name;
-}
-
 export type UseViewReturn = {
   view: ViewState;
-  goHome: () => void;
-  goLesson: (discoveryId: DiscoveryId, step?: number) => void;
-  goTest: (discoveryId: DiscoveryId) => void;
-  goResult: (discoveryId: DiscoveryId) => void;
-  goReward: (discoveryId: DiscoveryId) => void;
-  setStep: (step: number) => void;
+  /** Pushes a history entry, so Android back returns here. */
+  push: (next: ViewState) => void;
+  /** Replaces the current entry (step changes, test to result). */
+  replace: (next: ViewState) => void;
+  /** Returns to Home and drops the flow entries from history. */
+  home: () => void;
 };
 
+/**
+ * One route, a small view state machine synced to the URL. The stack is at
+ * most two deep (home, then the flow), so back always lands on Home or the lesson.
+ */
 export function useView(): UseViewReturn {
-  // Always start at home so SSR and the first client paint match.
-  // Deep links are applied in an effect below.
-  const [view, setViewState] = useState<ViewState>({ name: "home" });
-
-  // Depth tracking: how many pushState calls deep we are (for Android back)
+  const [view, setView] = useState<ViewState>({ name: "home" });
   const depthRef = useRef(0);
 
-  // Apply deep link once after mount, then keep data-view in sync.
   useEffect(() => {
-    const fromUrl = parseViewFromURL(window.location.search);
+    document.documentElement.dataset.view = view.name;
+  }, [view.name]);
+
+  useEffect(() => {
+    const fromUrl = parseViewFromSearch(window.location.search);
     if (fromUrl.name !== "home") {
-      // Replace so Android back from a deep-linked lesson stays in-app.
       history.replaceState(null, "", "/");
       history.pushState(null, "", buildURL(fromUrl));
       depthRef.current = 1;
-      setViewState(fromUrl);
-      setDataView(fromUrl.name);
-    } else {
-      setDataView("home");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- deep link is applied once after hydration
+      setView(fromUrl);
     }
-
     const onPopState = () => {
-      const nextView = parseViewFromURL(window.location.search);
-      setViewState(nextView);
-      setDataView(nextView.name);
-      depthRef.current = Math.max(0, depthRef.current - 1);
+      const next = parseViewFromSearch(window.location.search);
+      if (next.name === "home") depthRef.current = 0;
+      setView(next);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  const navigate = useCallback((next: ViewState, replace = false) => {
-    const url = buildURL(next);
-    if (replace) {
-      history.replaceState(null, "", url);
-    } else {
-      history.pushState(null, "", url);
-      depthRef.current += 1;
-    }
-    setViewState(next);
-    setDataView(next.name);
+  const push = useCallback((next: ViewState) => {
+    history.pushState(null, "", buildURL(next));
+    depthRef.current += 1;
+    setView(next);
   }, []);
 
-  const goHome = useCallback(() => navigate({ name: "home" }), [navigate]);
+  const replace = useCallback((next: ViewState) => {
+    history.replaceState(null, "", buildURL(next));
+    setView(next);
+  }, []);
 
-  const goLesson = useCallback(
-    (discoveryId: DiscoveryId, step = 1) =>
-      navigate({ name: "lesson", discoveryId, step }),
-    [navigate],
-  );
+  const home = useCallback(() => {
+    const depth = depthRef.current;
+    depthRef.current = 0;
+    setView({ name: "home" });
+    if (depth > 0) history.go(-depth);
+    else history.replaceState(null, "", "/");
+  }, []);
 
-  const goTest = useCallback(
-    (discoveryId: DiscoveryId) => navigate({ name: "test", discoveryId }),
-    [navigate],
-  );
-
-  const goResult = useCallback(
-    (discoveryId: DiscoveryId) => navigate({ name: "result", discoveryId }),
-    [navigate],
-  );
-
-  const goReward = useCallback(
-    (discoveryId: DiscoveryId) => navigate({ name: "reward", discoveryId }),
-    [navigate],
-  );
-
-  // Update step without adding a history entry
-  const setStep = useCallback(
-    (step: number) => {
-      if (view.name !== "lesson") return;
-      const next: ViewState = { ...view, step };
-      navigate(next, /* replace */ true);
-    },
-    [view, navigate],
-  );
-
-  return { view, goHome, goLesson, goTest, goResult, goReward, setStep };
+  return { view, push, replace, home };
 }

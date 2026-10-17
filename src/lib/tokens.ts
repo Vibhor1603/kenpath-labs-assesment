@@ -1,36 +1,126 @@
-/** Design tokens. Hex values are the source of truth; CSS uses OKLCH. */
+/** Design tokens. Hex values are the source of truth; globals.css carries the OKLCH equivalents. */
 
 export const palette = {
-  paper: "#FBF5EC",
-  sand: "#F1E4D1",
-  peach: "#F6C9A8",
-  butter: "#F7E3A1",
-  sage: "#C9DDB8",
-  sky: "#CFE4EC",
-  blush: "#F3C6C6",
-  lavender: "#D9D0EE",
-  softInk: "#5E554D",
-  deepInk: "#2B2420",
-  kiln: "#A94A1C",
-  ember: "#E2703A",
-  deepTeal: "#1F6672",
-  teal: "#2F7F8C",
-  deepBerry: "#A3384B",
-  berry: "#C2475B",
-  deepLeaf: "#2F6A3B",
-  leaf: "#3E7D4A",
+  canvas: "#F3F0EA",
+  surface: "#FFFDF8",
+  sunk: "#E9E4DA",
+  line: "#DDD6C8",
+  lineStrong: "#C9C0AE",
+  ink: "#17181C",
+  inkSoft: "#575C66",
+  brass: "#B5832F",
+  brassInk: "#8A5F17",
+  brassTint: "#F4E7CC",
+  correct: "#1D6B4B",
+  correctTint: "#E2EFE6",
+  wrong: "#A8392D",
+  wrongTint: "#F6E3DF",
+  tech: "#2C6680",
+  nature: "#386B43",
+  body: "#A23A4D",
 } as const;
 
-/** Contrast pairs with stated ratios from the brief and WCAG floors. */
+/** Colours used inside the illustrations (never as text). */
+export const artPalette = {
+  hotGas: "#E0573C",
+  warmLiquid: "#E9A15B",
+  veryCold: "#2F86A6",
+  coolGas: "#8DBBD0",
+  heat: "#E0573C",
+  bloodRich: "#C23B3B",
+  bloodPoor: "#7E6A9A",
+  water: "#3D8FB0",
+  sugar: "#D9A23A",
+} as const;
+
+/** Contrast pairs with measured ratios and WCAG floors (checked in tests/unit/contrast.test.ts). */
 export const contrastPairs = [
-  { name: "softInk/paper", fg: palette.softInk, bg: palette.paper, stated: 6.7, floor: 4.5 },
-  { name: "softInk/sand", fg: palette.softInk, bg: palette.sand, stated: 5.8, floor: 4.5 },
-  { name: "deepInk/paper", fg: palette.deepInk, bg: palette.paper, stated: 14.0, floor: 4.5 },
-  { name: "paper/kiln", fg: palette.paper, bg: palette.kiln, stated: 5.3, floor: 4.5 },
-  { name: "deepTeal/paper", fg: palette.deepTeal, bg: palette.paper, stated: 6.1, floor: 4.5 },
-  { name: "deepBerry/paper", fg: palette.deepBerry, bg: palette.paper, stated: 6.0, floor: 4.5 },
-  { name: "deepLeaf/paper", fg: palette.deepLeaf, bg: palette.paper, stated: 6.0, floor: 4.5 },
-  { name: "ember/paper", fg: palette.ember, bg: palette.paper, stated: 2.9, floor: 3.0, mustFailAsText: true },
+  { name: "ink/canvas", fg: palette.ink, bg: palette.canvas, stated: 15.6, floor: 4.5 },
+  {
+    name: "inkSoft/canvas",
+    fg: palette.inkSoft,
+    bg: palette.canvas,
+    stated: 5.9,
+    floor: 4.5,
+  },
+  {
+    name: "inkSoft/surface",
+    fg: palette.inkSoft,
+    bg: palette.surface,
+    stated: 6.6,
+    floor: 4.5,
+  },
+  {
+    name: "inkSoft/sunk",
+    fg: palette.inkSoft,
+    bg: palette.sunk,
+    stated: 5.3,
+    floor: 4.5,
+  },
+  {
+    name: "surface/ink (primary button)",
+    fg: palette.surface,
+    bg: palette.ink,
+    stated: 17.45,
+    floor: 4.5,
+  },
+  {
+    name: "brassInk/canvas",
+    fg: palette.brassInk,
+    bg: palette.canvas,
+    stated: 4.95,
+    floor: 4.5,
+  },
+  {
+    name: "brassInk/surface",
+    fg: palette.brassInk,
+    bg: palette.surface,
+    stated: 5.54,
+    floor: 4.5,
+  },
+  {
+    name: "correct/surface",
+    fg: palette.correct,
+    bg: palette.surface,
+    stated: 6.34,
+    floor: 4.5,
+  },
+  {
+    name: "wrong/surface",
+    fg: palette.wrong,
+    bg: palette.surface,
+    stated: 6.28,
+    floor: 4.5,
+  },
+  {
+    name: "tech/surface",
+    fg: palette.tech,
+    bg: palette.surface,
+    stated: 6.22,
+    floor: 4.5,
+  },
+  {
+    name: "nature/surface",
+    fg: palette.nature,
+    bg: palette.surface,
+    stated: 6.16,
+    floor: 4.5,
+  },
+  {
+    name: "body/surface",
+    fg: palette.body,
+    bg: palette.surface,
+    stated: 6.36,
+    floor: 4.5,
+  },
+  {
+    name: "brass/canvas",
+    fg: palette.brass,
+    bg: palette.canvas,
+    stated: 2.95,
+    floor: 3.0,
+    mustFailAsText: true,
+  },
 ] as const;
 
 export const layout = {
@@ -42,23 +132,13 @@ export const layout = {
   targetMin: 48,
   targetGap: 8,
   stageInset: 16,
-  sheetRadius: 24,
   frameWidth: 430,
   frameRadius: 32,
-  cardRadius: 16,
-} as const;
-
-export const ambient = {
-  settleMinMs: 7000,
-  settleMaxMs: 11000,
-  butterflyMinMs: 12000,
-  butterflyMaxMs: 20000,
-  holdDoorMs: 400,
 } as const;
 
 export const swipe = {
   offsetPx: 60,
-  velocity: 400,
+  velocity: 0.4,
   elastic: 0.18,
 } as const;
 

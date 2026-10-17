@@ -1,12 +1,7 @@
 import { fridge } from "@/content/fridge";
 import { heart } from "@/content/heart";
 import { leaf } from "@/content/leaf";
-import type { ComponentType } from "react";
-import type {
-  ArtComponentProps,
-  Discovery,
-  DiscoveryId,
-} from "@/content/types";
+import type { Discovery, DiscoveryId, LessonArtModule } from "@/content/types";
 
 export { fridge, leaf, heart };
 export type { Discovery, DiscoveryId } from "@/content/types";
@@ -20,13 +15,15 @@ export function getDiscovery(id: DiscoveryId): Discovery | undefined {
   return discoveries.find((d) => d.id === id);
 }
 
-export type { ArtComponentProps } from "@/content/types";
+/** Lesson art is code-split per discovery and preloaded from Home when idle. */
+export const artLoaders: Record<DiscoveryId, () => Promise<LessonArtModule>> = {
+  fridge: () => import("@/art/fridge/FridgeLesson"),
+  leaf: () => import("@/art/leaf/LeafLesson"),
+  heart: () => import("@/art/heart/HeartLesson"),
+};
 
-export const artLoaders: Record<
-  DiscoveryId,
-  () => Promise<{ default: ComponentType<ArtComponentProps> }>
-> = {
-  fridge: () => import("@/art/fridge/FridgeArt"),
-  leaf: () => import("@/art/leaf/LeafArt"),
-  heart: () => import("@/art/heart/HeartArt"),
+export const sourceIds: Record<DiscoveryId, string[]> = {
+  fridge: ["refrigerator"],
+  leaf: ["photosynthesis-ng", "photosynthesis-khan"],
+  heart: ["heart-blood-flow", "heart-anatomy"],
 };

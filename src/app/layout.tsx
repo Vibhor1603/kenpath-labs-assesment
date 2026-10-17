@@ -1,31 +1,33 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
+import { InlineScript } from "@/components/app/InlineScript";
 import { BOOT_SCRIPT } from "@/lib/bootScript";
 import "./globals.css";
 
-// Minimal weights to stay near the 90 KB font budget.
-const fraunces = Fraunces({
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-fraunces",
+  variable: "--font-bricolage",
   weight: ["600"],
 });
 
-const inter = Inter({
+const figtree = Figtree({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-figtree",
   weight: ["400", "600"],
 });
 
 export const metadata: Metadata = {
   title: "How Things Work",
-  description: "A daily illustrated museum in your pocket.",
+  description:
+    "A daily illustrated museum in your pocket. See how a fridge, a leaf and your heart work, then prove it with a 5 of 5 test.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FBF5EC",
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#F3F0EA",
   viewportFit: "cover",
 };
 
@@ -33,30 +35,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${figtree.variable}`}
       suppressHydrationWarning
     >
       <head>
-        {/* Boot script: sets data-lite, data-calm, data-returning before first paint */}
-        <script
-          dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }}
-        />
+        <InlineScript html={BOOT_SCRIPT} />
       </head>
-      <body className="min-h-dvh flex flex-col" suppressHydrationWarning>
-        {children}
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            style: {
-              background: "var(--background)",
-              color: "var(--foreground)",
-              border: "1px solid var(--border)",
-              borderRadius: "16px",
-              fontFamily: "var(--font-inter)",
-            },
-          }}
-        />
-      </body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

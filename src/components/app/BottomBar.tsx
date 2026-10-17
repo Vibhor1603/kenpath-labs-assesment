@@ -1,41 +1,16 @@
-"use client";
-
-import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
-type BottomBarProps = {
-  /** Slot for the full-width primary button. */
-  primaryAction: ReactNode;
-  /** Optional secondary actions (icon buttons) beside the primary. */
-  secondaryAction?: ReactNode;
-  className?: string;
-};
-
-/**
- * BottomBar: 72px + safe-area-inset-bottom.
- * Holds the primary action button and optional secondary actions.
- * Primary button should be 56px tall and fill the available width.
- */
-export function BottomBar({
-  primaryAction,
-  secondaryAction,
-  className,
-}: BottomBarProps) {
+/** Thumb zone. 72px plus the safe area; every main action lives here. */
+export function BottomBar({ children }: { children: ReactNode }) {
   return (
     <footer
-      className={cn(
-        "flex w-full items-end gap-3 px-4",
-        "h-[calc(72px+env(safe-area-inset-bottom))]",
-        "pb-[max(16px,env(safe-area-inset-bottom))]",
-        "bg-background border-t border-border/40",
-        className,
-      )}
-      aria-label="Primary actions"
+      className="bg-surface relative z-20 flex shrink-0 items-center gap-2 px-[max(16px,env(safe-area-inset-left))] pt-2 pb-[max(8px,env(safe-area-inset-bottom))] shadow-[0_-1px_0_var(--line)]"
+      style={{
+        minHeight: "calc(72px + env(safe-area-inset-bottom))",
+        viewTransitionName: "bottombar",
+      }}
     >
-      {secondaryAction && (
-        <div className="shrink-0">{secondaryAction}</div>
-      )}
-      <div className="flex flex-1">{primaryAction}</div>
+      {children}
     </footer>
   );
 }

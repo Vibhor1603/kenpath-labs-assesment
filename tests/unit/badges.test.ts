@@ -70,8 +70,6 @@ describe("badges", () => {
     const again = getNewBadges(after, { isPerfect: true, attemptNumber: 2 }, "iso");
     expect(again.map((b) => b.id)).not.toContain("first-discovery");
     expect(getUnseenBadges(after)).toEqual(["first-discovery"]);
-    expect(
-      getUnseenBadges({ ...after, seenBadges: ["first-discovery"] }),
-    ).toEqual([]);
+    expect(getUnseenBadges({ ...after, seenBadges: ["first-discovery"] })).toEqual([]);
   });
 });

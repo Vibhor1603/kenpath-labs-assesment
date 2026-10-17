@@ -1,84 +1,51 @@
 "use client";
 
-import { copy } from "@/content/copy";
-import type { BadgeId } from "@/content/types";
+import { BadgePin } from "@/components/app/BadgePin";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogContent,
-  DialogHeader,
+  DialogClose,
+  DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useEffect, useRef } from "react";
+import { copy } from "@/content/copy";
+import type { BadgeId } from "@/content/types";
+import { useState } from "react";
 
-type NewBadgeDialogProps = {
-  badgeId: BadgeId | null;
-  onClose: () => void;
-};
+type NewBadgeDialogProps = { badge: BadgeId | null; onDone: () => void };
 
-const BADGE_ICONS: Record<BadgeId, string> = {
-  "first-discovery": "🌟",
-  "perfect-scholar": "📚",
-  "streak-3": "🌱",
-  "curious-mind": "🔭",
-};
-
-/**
- * NewBadgeDialog: shown once after the reward moment when a new badge is earned.
- * Short, skippable, focus returns to primary button on close.
- */
-export function NewBadgeDialog({ badgeId, onClose }: NewBadgeDialogProps) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (badgeId) closeRef.current?.focus();
-  }, [badgeId]);
-
-  if (!badgeId) return null;
-
-  const name = copy.badges.names[badgeId];
-  const icon = BADGE_ICONS[badgeId];
-
+/** Shows one newly earned badge. The pin lands, a brass ring spreads once. */
+export function NewBadgeDialog({ badge: incoming, onDone }: NewBadgeDialogProps) {
+  // Keep the last badge on screen while the dialog plays its exit.
+  const [badge, setBadge] = useState<BadgeId | null>(incoming);
+  if (incoming && incoming !== badge) setBadge(incoming);
   return (
-    <Dialog open={!!badgeId} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="mx-auto max-w-[320px] rounded-[24px] border-border/50 bg-background p-6 text-center">
-        <DialogHeader>
-          <DialogTitle className="sr-only">{copy.badges.newBadgeTitle}</DialogTitle>
-        </DialogHeader>
-
-        {/* Badge icon */}
-        <div className="mb-4 flex justify-center text-[48px]">
-          {icon}
-        </div>
-
-        <p className="text-[13px] font-medium uppercase tracking-widest text-muted-foreground mb-1">
-          {copy.badges.newBadgeTitle}
-        </p>
-
-        <h2 className="font-display text-[24px] font-[600] text-foreground mb-2">
-          {name}
-        </h2>
-
-        <p className="text-[15px] text-muted-foreground mb-6">
-          {getBadgeDescription(badgeId)}
-        </p>
-
-        <button
-          ref={closeRef}
-          onClick={onClose}
-          className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-[17px] font-medium text-primary-foreground active:scale-[0.97] transition-transform"
-        >
-          Great
-        </button>
-      </DialogContent>
+    <Dialog open={incoming !== null} onOpenChange={(open) => !open && onDone()}>
+      {badge ? (
+        <>
+          <div className="relative mx-auto size-[112px]" aria-hidden="true">
+            <span
+              className="ring-brass absolute inset-0 rounded-full ring-2"
+              style={{ animation: "arrive-ring 900ms var(--ease-out) 260ms both" }}
+            />
+            <span className="anim-pop-in block" style={{ animationDelay: "80ms" }}>
+              <BadgePin id={badge} earned className="size-[112px]" />
+            </span>
+          </div>
+          <p className="text-caption text-brass-ink mt-5 font-semibold tracking-[0.06em] uppercase">
+            {copy.badges.newBadgeTitle}
+          </p>
+          <DialogTitle className="text-title mt-1">
+            {copy.badges.names[badge]}
+          </DialogTitle>
+          <DialogDescription className="text-small text-ink-soft mt-2">
+            {copy.badges.descriptions[badge]}
+          </DialogDescription>
+          <DialogClose render={<Button className="mt-6 w-full" />}>
+            {copy.badges.gotIt}
+          </DialogClose>
+        </>
+      ) : null}
     </Dialog>
   );
-}
-
-function getBadgeDescription(id: BadgeId): string {
-  switch (id) {
-    case "first-discovery": return "You completed your first discovery.";
-    case "perfect-scholar": return "You passed on your first try.";
-    case "streak-3": return "Three days in a row. Keep going.";
-    case "curious-mind": return "You understand all three discoveries.";
-  }
 }

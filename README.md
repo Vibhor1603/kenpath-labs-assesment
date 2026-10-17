@@ -8,9 +8,9 @@ The product is tuned for modest Android phones and mobile data: static HTML expo
 
 ## Live link
 
-> After deploy, paste the production URL here.
+**https://kenpath-labs.vercel.app**
 
-Deploy the `out/` folder from `npm run build` to any static host (Vercel, Netlify, Cloudflare Pages, or GitHub Pages). Prefer a free tier. Open the URL on a phone first.
+Open on a phone first. Static export hosted on Vercel free tier.
 
 ## Quick start
 

@@ -34,6 +34,8 @@ export const copy = {
     understood: "Understood",
     ready: "Ready",
     scoreLabel: "Test score",
+    streakLabel: "Streak",
+    streakDays: (count: number) => (count === 1 ? "1 day" : `${count} days`),
   },
   lesson: {
     next: "Next",

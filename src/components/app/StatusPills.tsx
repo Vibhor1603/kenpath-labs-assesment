@@ -1,4 +1,5 @@
 import { Sprout } from "@/components/app/Sprout";
+import { copy } from "@/content/copy";
 
 const pill =
   "pressable inline-flex h-10 items-center gap-1.5 rounded-full bg-surface pr-3.5 text-[15px] font-semibold text-ink ring-1 ring-line ring-inset";
@@ -34,17 +35,22 @@ export function PointsPill({ points, onPress, unseen }: PointsPillProps) {
   );
 }
 
-/** Streak count with the sprout. Not a button: there is nothing to open. */
+/** Daily streak: sprout + explicit “Streak” label so the meaning is obvious. */
 export function StreakPill({ count }: { count: number }) {
+  const days = copy.home.streakDays(count);
   return (
     <span
-      className="bg-surface text-ink ring-line inline-flex h-10 items-center gap-1 rounded-full pr-3.5 pl-2 text-[15px] font-semibold ring-1 ring-inset"
+      className="bg-surface text-ink ring-line inline-flex h-10 max-w-[148px] items-center gap-1.5 rounded-full pr-3 pl-1.5 text-[13px] font-semibold ring-1 ring-inset"
       role="img"
-      aria-label={count === 1 ? "Streak: 1 day" : `Streak: ${count} days`}
+      aria-label={`${copy.home.streakLabel}: ${days}`}
+      title={`${copy.home.streakLabel}: ${days} in a row`}
     >
       <Sprout count={count} />
-      <span className="tabular" aria-hidden="true">
-        {count}
+      <span className="min-w-0 leading-tight" aria-hidden="true">
+        <span className="text-ink-soft block text-[10px] font-semibold tracking-[0.04em] uppercase">
+          {copy.home.streakLabel}
+        </span>
+        <span className="tabular text-[13px] leading-none">{days}</span>
       </span>
     </span>
   );
